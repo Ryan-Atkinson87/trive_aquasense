@@ -23,11 +23,7 @@ class Waveshare147ST7789Display(BaseDisplay):
     WIDTH = 172
     HEIGHT = 320
 
-    # Controller GRAM size (fixed for ST7789)
-    GRAM_WIDTH = 240
-    GRAM_HEIGHT = 320
-
-    # Panel is horizontally centered
+    # Panel is horizontally centered in 240-wide GRAM
     X_OFFSET = 34
     Y_OFFSET = 0
 
@@ -59,13 +55,11 @@ class Waveshare147ST7789Display(BaseDisplay):
         self._spi.max_speed_hz = spi_cfg.get("max_speed_hz", 10_000_000)
 
         self._framebuffer = bytearray(
-            self.GRAM_WIDTH * self.GRAM_HEIGHT * 2
+            self.WIDTH * self.HEIGHT * 2
         )
 
         self._logger.info(
-            "ST7789 init: GRAM=%dx%d visible=%dx%d offset=(%d,%d)",
-            self.GRAM_WIDTH,
-            self.GRAM_HEIGHT,
+            "ST7789 init: visible=%dx%d offset=(%d,%d)",
             self.WIDTH,
             self.HEIGHT,
             self.X_OFFSET,
@@ -101,30 +95,69 @@ class Waveshare147ST7789Display(BaseDisplay):
             self._spi.writebytes(data[i:i + self.SPI_WRITE_CHUNK])
 
     def _hardware_reset(self) -> None:
-        GPIO.output(self._reset_pin, GPIO.LOW)
-        time.sleep(0.05)
         GPIO.output(self._reset_pin, GPIO.HIGH)
-        time.sleep(0.05)
+        time.sleep(0.01)
+        GPIO.output(self._reset_pin, GPIO.LOW)
+        time.sleep(0.01)
+        GPIO.output(self._reset_pin, GPIO.HIGH)
+        time.sleep(0.01)
 
     # ------------------------------------------------------------------
     # Display init
     # ------------------------------------------------------------------
 
     def _init_display(self) -> None:
-        self._write_command(0x01)  # SWRESET
-        time.sleep(0.15)
+        self._write_command(0x36)  # MADCTL
+        self._write_data(b"\x00")  # Portrait, RGB
+
+        self._write_command(0x3A)  # COLMOD
+        self._write_data(b"\x05")  # RGB565 (MCU interface)
+
+        self._write_command(0xB2)  # Porch control
+        self._write_data(b"\x0C\x0C\x00\x33\x33")
+
+        self._write_command(0xB7)  # Gate control
+        self._write_data(b"\x35")
+
+        self._write_command(0xBB)  # VCOM setting
+        self._write_data(b"\x35")
+
+        self._write_command(0xC0)  # LCM control
+        self._write_data(b"\x2C")
+
+        self._write_command(0xC2)  # VDV/VRH enable
+        self._write_data(b"\x01")
+
+        self._write_command(0xC3)  # VRH set
+        self._write_data(b"\x13")
+
+        self._write_command(0xC4)  # VDV set
+        self._write_data(b"\x20")
+
+        self._write_command(0xC6)  # Frame rate control
+        self._write_data(b"\x0F")
+
+        self._write_command(0xD0)  # Power control
+        self._write_data(b"\xA4\xA1")
+
+        self._write_command(0xE0)  # Positive gamma correction
+        self._write_data(
+            b"\xF0\xF0\x00\x04\x04\x04\x05\x29"
+            b"\x33\x3E\x38\x12\x12\x28\x30"
+        )
+
+        self._write_command(0xE1)  # Negative gamma correction
+        self._write_data(
+            b"\xF0\x07\x0A\x0D\x0B\x07\x28"
+            b"\x33\x3E\x36\x14\x14\x29\x32"
+        )
+
+        self._write_command(0x21)  # Display inversion on
 
         self._write_command(0x11)  # SLPOUT
         time.sleep(0.15)
 
-        self._write_command(0x3A)  # COLMOD
-        self._write_data(b"\x55")  # RGB565
-
-        self._write_command(0x36)  # MADCTL
-        self._write_data(b"\x00")  # Portrait, RGB
-
         self._write_command(0x29)  # DISPON
-        time.sleep(0.05)
 
     def _set_window(self) -> None:
         self._write_command(0x2A)
@@ -146,19 +179,16 @@ class Waveshare147ST7789Display(BaseDisplay):
     # ------------------------------------------------------------------
 
     def _clear_framebuffer(self, color: bytes) -> None:
-        pixel = color * self.GRAM_WIDTH
-        for y in range(self.GRAM_HEIGHT):
-            start = y * self.GRAM_WIDTH * 2
-            self._framebuffer[start:start + self.GRAM_WIDTH * 2] = pixel
+        pixel = color * self.WIDTH
+        for y in range(self.HEIGHT):
+            start = y * self.WIDTH * 2
+            self._framebuffer[start:start + self.WIDTH * 2] = pixel
 
     def _draw_pixel(self, x: int, y: int, color: bytes) -> None:
         if not (0 <= x < self.WIDTH and 0 <= y < self.HEIGHT):
             return
 
-        gram_x = self.X_OFFSET + x
-        gram_y = self.Y_OFFSET + y
-
-        idx = (gram_y * self.GRAM_WIDTH + gram_x) * 2
+        idx = (y * self.WIDTH + x) * 2
         self._framebuffer[idx:idx + 2] = color
 
     def _draw_char(self, x: int, y: int, char: str, color: bytes) -> None:
