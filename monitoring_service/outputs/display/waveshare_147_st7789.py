@@ -218,18 +218,18 @@ class Waveshare147ST7789Display(BaseDisplay):
         try:
             status = DisplayStatus.from_snapshot(snapshot)
 
-            self._clear_framebuffer(self._rgb565(255, 255, 255))
+            self._clear_framebuffer(self._rgb565(0, 0, 0))
 
-            black = self._rgb565(0, 0, 0)
+            white = self._rgb565(255, 255, 255)
 
-            self.draw_text(5, 5, status.device_name, black)
+            self.draw_text(5, 5, status.device_name, white)
 
             if status.water_temperature is not None:
                 self.draw_text(
                     5,
                     20,
                     f"WATER:{status.water_temperature:.1f}C",
-                    black,
+                    white,
                 )
 
             self._set_window()
