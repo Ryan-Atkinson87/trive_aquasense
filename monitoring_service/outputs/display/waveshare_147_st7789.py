@@ -180,10 +180,7 @@ class Waveshare147ST7789Display(BaseDisplay):
     # ------------------------------------------------------------------
 
     def _clear_framebuffer(self, color: bytes) -> None:
-        pixel = color * self.WIDTH
-        for y in range(self.HEIGHT):
-            start = y * self.WIDTH * 2
-            self._framebuffer[start:start + self.WIDTH * 2] = pixel
+        self._framebuffer[:] = color * (self.WIDTH * self.HEIGHT)
 
     def _draw_pixel(self, x: int, y: int, color: bytes) -> None:
         if not (0 <= x < self.WIDTH and 0 <= y < self.HEIGHT):
@@ -275,6 +272,16 @@ class Waveshare147ST7789Display(BaseDisplay):
 
         except Exception:
             self._logger.warning("Render failed", exc_info=True)
+
+    # ------------------------------------------------------------------
+    # Cleanup
+    # ------------------------------------------------------------------
+
+    def close(self) -> None:
+        """Release SPI and GPIO resources."""
+        GPIO.output(self._backlight_pin, GPIO.LOW)
+        self._spi.close()
+        GPIO.cleanup([self._dc_pin, self._reset_pin, self._backlight_pin])
 
     # ------------------------------------------------------------------
     # Validation

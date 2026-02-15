@@ -5,10 +5,10 @@ Provides a logging based display implementation for development and testing.
 """
 
 import logging
-import time
 from typing import Mapping, Any
 
 from monitoring_service.outputs.display.base import BaseDisplay
+from monitoring_service.outputs.status_model import DisplayStatus
 
 
 class LoggingDisplay(BaseDisplay):
@@ -38,20 +38,15 @@ class LoggingDisplay(BaseDisplay):
             return
 
         try:
-            timestamp_ms = snapshot.get("ts")
-            values = snapshot.get("values", {})
-
-            water_temperature = values.get("water_temperature", "N/A")
-
-            if isinstance(timestamp_ms, (int, float)):
-                age_seconds = int((time.time() * 1000 - timestamp_ms) / 1000)
-            else:
-                age_seconds = "N/A"
+            status = DisplayStatus.from_snapshot(snapshot)
 
             self._logger.info(
-                "Display update | water_temperature=%s | age=%s seconds",
-                water_temperature,
-                age_seconds,
+                "Display update | water_temperature=%s | air_temperature=%s"
+                " | air_humidity=%s | water_flow=%s",
+                status.water_temperature,
+                status.air_temperature,
+                status.air_humidity,
+                status.water_flow,
             )
 
         except Exception:

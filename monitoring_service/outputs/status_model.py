@@ -6,8 +6,6 @@ import time
 @dataclass(frozen=True)
 class DisplayStatus:
     device_name: str
-    #connected: bool
-    #last_publish_ok: bool
     water_temperature: Optional[float]
     air_temperature: Optional[float]
     air_humidity: Optional[float]
@@ -20,8 +18,6 @@ class DisplayStatus:
 
         return cls(
             device_name=snapshot.get("device_name", "unknown"),
-            #connected=snapshot.get("connected", False),
-            #last_publish_ok=snapshot.get("last_publish_ok", False),
             water_temperature=values.get("water_temperature"),
             air_temperature=values.get("air_temperature"),
             air_humidity=values.get("air_humidity"),
