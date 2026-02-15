@@ -232,6 +232,30 @@ class Waveshare147ST7789Display(BaseDisplay):
                     white,
                 )
 
+            if status.air_temperature is not None:
+                self.draw_text(
+                    5,
+                    35,
+                    f"AIR:{status.air_temperature:.1f}C",
+                    white,
+                )
+
+            if status.air_humidity is not None:
+                self.draw_text(
+                    5,
+                    50,
+                    f"HUMID:{status.air_humidity:.1f}%",
+                    white,
+                )
+
+            if status.water_flow is not None:
+                self.draw_text(
+                    5,
+                    65,
+                    f"FLOW:{status.water_flow:.1f}L/M",
+                    white,
+                )
+
             self._set_window()
             self._write_data(self._framebuffer)
 

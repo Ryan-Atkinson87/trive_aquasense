@@ -9,7 +9,9 @@ class DisplayStatus:
     #connected: bool
     #last_publish_ok: bool
     water_temperature: Optional[float]
-    #flow_present: Optional[bool]
+    air_temperature: Optional[float]
+    air_humidity: Optional[float]
+    water_flow: Optional[float]
     timestamp_utc: float
 
     @classmethod
@@ -21,6 +23,8 @@ class DisplayStatus:
             #connected=snapshot.get("connected", False),
             #last_publish_ok=snapshot.get("last_publish_ok", False),
             water_temperature=values.get("water_temperature"),
-            #flow_present=values.get("flow_present"),
+            air_temperature=values.get("air_temperature"),
+            air_humidity=values.get("air_humidity"),
+            water_flow=values.get("water_flow"),
             timestamp_utc=snapshot.get("ts", time.time()),
         )
