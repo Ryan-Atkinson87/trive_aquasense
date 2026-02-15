@@ -27,6 +27,7 @@ class Waveshare147ST7789Display(BaseDisplay):
     X_OFFSET = 34
     Y_OFFSET = 0
 
+    FONT_SCALE = 2
     SPI_WRITE_CHUNK = 4096  # spidev write limit
 
     def __init__(self, config: Mapping[str, Any]) -> None:
@@ -191,7 +192,9 @@ class Waveshare147ST7789Display(BaseDisplay):
         idx = (y * self.WIDTH + x) * 2
         self._framebuffer[idx:idx + 2] = color
 
-    def _draw_char(self, x: int, y: int, char: str, color: bytes) -> None:
+    def _draw_char(
+        self, x: int, y: int, char: str, color: bytes, scale: int = 1,
+    ) -> None:
         glyph = FONT_5X7.get(char.upper())
         if not glyph:
             return
@@ -199,13 +202,23 @@ class Waveshare147ST7789Display(BaseDisplay):
         for col, bits in enumerate(glyph):
             for row in range(7):
                 if bits & (1 << row):
-                    self._draw_pixel(x + col, y + row, color)
+                    px = x + col * scale
+                    py = y + row * scale
+                    for sy in range(scale):
+                        for sx in range(scale):
+                            self._draw_pixel(px + sx, py + sy, color)
 
-    def draw_text(self, x: int, y: int, text: str, color: bytes) -> None:
+    def draw_text(
+        self, x: int, y: int, text: str, color: bytes, scale: int = 1,
+    ) -> None:
         cx = x
         for char in text:
-            self._draw_char(cx, y, char, color)
-            cx += 6
+            self._draw_char(cx, y, char, color, scale)
+            cx += 6 * scale
+
+    @staticmethod
+    def _text_width(text: str, scale: int = 1) -> int:
+        return len(text) * 6 * scale - scale
 
     # ------------------------------------------------------------------
     # Rendering
@@ -221,40 +234,39 @@ class Waveshare147ST7789Display(BaseDisplay):
             self._clear_framebuffer(self._rgb565(0, 0, 0))
 
             white = self._rgb565(255, 255, 255)
+            scale = self.FONT_SCALE
 
-            self.draw_text(5, 5, status.device_name, white)
+            # Build lines to render
+            lines: list[str] = [status.device_name]
 
             if status.water_temperature is not None:
-                self.draw_text(
-                    5,
-                    20,
-                    f"WATER:{status.water_temperature:.1f}C",
-                    white,
-                )
+                lines.append(f"WATER:{status.water_temperature:.1f}C")
 
             if status.air_temperature is not None:
-                self.draw_text(
-                    5,
-                    35,
-                    f"AIR:{status.air_temperature:.1f}C",
-                    white,
-                )
+                lines.append(f"AIR:{status.air_temperature:.1f}C")
 
             if status.air_humidity is not None:
-                self.draw_text(
-                    5,
-                    50,
-                    f"HUMID:{status.air_humidity:.1f}%",
-                    white,
-                )
+                lines.append(f"HUMID:{status.air_humidity:.1f}%")
 
             if status.water_flow is not None:
-                self.draw_text(
-                    5,
-                    65,
-                    f"FLOW:{status.water_flow:.1f}L/M",
-                    white,
-                )
+                lines.append(f"FLOW:{status.water_flow:.1f}L/M")
+
+            # 10% margins on each side
+            y_margin = int(self.HEIGHT * 0.10)
+            usable_height = self.HEIGHT - 2 * y_margin
+            char_height = 7 * scale
+            n = len(lines)
+
+            if n > 1:
+                line_stride = (usable_height - char_height) // (n - 1)
+            else:
+                line_stride = 0
+
+            for i, text in enumerate(lines):
+                tw = self._text_width(text, scale)
+                x = (self.WIDTH - tw) // 2
+                y = y_margin + i * line_stride
+                self.draw_text(x, y, text, white, scale)
 
             self._set_window()
             self._write_data(self._framebuffer)
