@@ -20,7 +20,8 @@ import board
 import busio
 import adafruit_ssd1306
 
-from monitoring_service.display.base import BaseDisplay
+from monitoring_service.outputs.display.base import BaseDisplay
+from monitoring_service.outputs.status_model import DisplayStatus
 
 
 class SSD1306I2CDisplay(BaseDisplay):
@@ -115,21 +116,15 @@ class SSD1306I2CDisplay(BaseDisplay):
             return
 
         try:
+            status = DisplayStatus.from_snapshot(snapshot)
+
             self._draw.rectangle((0, 0, self._width, self._height), outline=0, fill=0)
 
-            timestamp_ms = snapshot.get("ts")
-            snapshot_values = snapshot.get("values", {})
-
-            water_temperature = snapshot_values.get("water_temperature")
-            air_temperature = snapshot_values.get("air_temperature")
-            air_humidity = snapshot_values.get("air_humidity")
-
             self._logger.info(
-                "OLED update | water_temperature=%s | air_temperature=%s | air_humidity=%s | timestamp=%s",
-                water_temperature,
-                air_temperature,
-                air_humidity,
-                timestamp_ms,
+                "OLED update | water_temperature=%s | air_temperature=%s | air_humidity=%s",
+                status.water_temperature,
+                status.air_temperature,
+                status.air_humidity,
             )
 
             col_centers = [21, 64, 107]
@@ -142,19 +137,17 @@ class SSD1306I2CDisplay(BaseDisplay):
             for label, cx in zip(labels, col_centers):
                 self._draw_centered_text(label, cx, label_y)
 
-            water_text = f"{water_temperature:.1f}°C" if isinstance(water_temperature, (int, float)) else "--°C"
-            air_text = f"{air_temperature:.1f}°C" if isinstance(air_temperature, (int, float)) else "--°C"
-            humidity_text = f"{air_humidity:.0f}%" if isinstance(air_humidity, (int, float)) else "--%"
+            water_text = f"{status.water_temperature:.1f}°C" if status.water_temperature is not None else "--°C"
+            air_text = f"{status.air_temperature:.1f}°C" if status.air_temperature is not None else "--°C"
+            humidity_text = f"{status.air_humidity:.0f}%" if status.air_humidity is not None else "--%"
 
             values = [water_text, air_text, humidity_text]
             for value, cx in zip(values, col_centers):
                 self._draw_centered_text(value, cx, value_y)
 
+            timestamp_ms = status.timestamp_utc
             if timestamp_ms:
-                if isinstance(timestamp_ms, (int, float)):
-                    timestamp_ms_dt = datetime.fromtimestamp(timestamp_ms / 1000)
-                else:
-                    timestamp_ms_dt = timestamp_ms
+                timestamp_ms_dt = datetime.fromtimestamp(timestamp_ms / 1000)
                 timestamp = timestamp_ms_dt.strftime("%H:%M %d/%m/%Y")
             else:
                 timestamp = "--:-- --/--/----"
