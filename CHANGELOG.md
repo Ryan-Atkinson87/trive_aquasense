@@ -8,6 +8,33 @@ Format: Keep a Changelog. Versioning: SemVer (MAJOR.MINOR.PATCH).
 - (Planned) SQLite que for offline storage and retries.
 - (Planned) HTTP implementation for sending data to places other than ThingsBoard.
 
+## [v2.4.0] - 2026-02-16
+
+### Added
+- Waveshare 1.47" ST7789 LCD display driver (`waveshare_147_st7789.py`) with SPI interface.
+- Custom 5x7 bitmap font (`font_5x7.py`) supporting uppercase letters, numbers, and symbols.
+- `DisplayStatus` dataclass (`status_model.py`) consumed by all display drivers.
+- `InputManager` to encapsulate sensor factory and telemetry collection behind a single `collect()` interface.
+- `OutputManager` to fan out snapshots to displays with failure isolation and cleanup.
+- Unit and hardware tests for the Waveshare 1.47" display.
+- CLAUDE.md and `.claudeignore` for Claude Code integration.
+- Prepare-release skill for release readiness checks.
+
+### Changed
+- Restructured project into `inputs/` and `outputs/` directories for clearer module separation.
+  - Sensors moved from `monitoring_service/sensors/` to `monitoring_service/inputs/sensors/`.
+  - Displays moved from `monitoring_service/display/` to `monitoring_service/outputs/display/`.
+- `MonitoringAgent` now delegates to `InputManager` and `OutputManager` instead of managing sensors and displays directly.
+- Waveshare display renders black background with white text, 2x scaled font, centered layout.
+- Display renders air temp, humidity, and water flow alongside water temperature.
+
+### Fixed
+- ST7789 init sequence, framebuffer sizing, and reset to match Waveshare reference implementation.
+- Pixel coordinate overflow in Waveshare display driver.
+- OverflowError from buffer being too large to send to display.
+- SensorFactory import path after `inputs/` restructure.
+- Double close in Waveshare hardware test.
+
 ## [v2.3.0] - 2026-01-28
 
 ### Added
