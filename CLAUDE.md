@@ -84,6 +84,15 @@ Raw sensor `read()` → key mapping → calibration (`value * slope + offset`) �
 - Hardware tests use `@pytest.mark.hardware` marker
 - Test fixtures provide standard sensor configurations
 - Incomplete/WIP tests go in `tests/not_implemented/`
+- **Mocking submodule imports (e.g. `RPi.GPIO`):** When a driver does `import RPi.GPIO as GPIO`, Python resolves via attribute access on the parent module. You must link both `sys.modules` entries to the same mock object:
+  ```python
+  mock_gpio = MagicMock()
+  mock_rpi = MagicMock()
+  mock_rpi.GPIO = mock_gpio          # attribute access path
+  sys.modules["RPi"] = mock_rpi
+  sys.modules["RPi.GPIO"] = mock_gpio  # import system path
+  ```
+  Setting them independently causes the driver to bind to an auto-generated child mock instead of your mock, so assertions on `mock_gpio` silently fail.
 
 ## Git Workflow
 
