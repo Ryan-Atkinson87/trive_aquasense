@@ -1,7 +1,7 @@
 import logging
 import time
 
-from monitoring_service.display.logging_display import LoggingDisplay
+from monitoring_service.outputs.display.logging_display import LoggingDisplay
 
 
 def test_logging_display_renders_snapshot(caplog):
@@ -23,8 +23,10 @@ def test_logging_display_renders_snapshot(caplog):
     with caplog.at_level(logging.INFO):
         display.render(snapshot)
 
-    assert "water_temperature" in caplog.text
-    assert "age=" in caplog.text
+    assert "water_temperature=25.123" in caplog.text
+    assert "air_temperature=" in caplog.text
+    assert "air_humidity=" in caplog.text
+    assert "water_flow=" in caplog.text
 
 
 def test_logging_display_handles_missing_values(caplog):

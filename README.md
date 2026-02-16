@@ -30,25 +30,33 @@ trive_aquasense/
 ├── docs/
 │   └── SENSOR_INTERFACE.md
 ├── monitoring_service/
-│   ├── display/
-│   │   ├── __init__.py
-│   │   ├── base.py
-│   │   ├── factory.py
-│   │   ├── logging_display.py
-│   │   └── ssd1306_i2c.py.py
 │   ├── exceptions/
 │   │   ├── __init__.py
 │   │   └── factory_exceptions.py
-│   ├── sensors/
+│   ├── inputs/
 │   │   ├── __init__.py
-│   │   ├── base.py
-│   │   ├── constants.py
-│   │   ├── dht22.py
-│   │   ├── ds18b20.py
-│   │   ├── factory.py
-│   │   ├── gpio_sensor.py
-│   │   ├── i2c_water_level.py
-│   │   └── water_flow.py
+│   │   ├── input_manager.py
+│   │   └── sensors/
+│   │       ├── __init__.py
+│   │       ├── base.py
+│   │       ├── constants.py
+│   │       ├── dht22.py
+│   │       ├── ds18b20.py
+│   │       ├── factory.py
+│   │       ├── gpio_sensor.py
+│   │       └── water_flow.py
+│   ├── outputs/
+│   │   ├── __init__.py
+│   │   ├── output_manager.py
+│   │   ├── status_model.py
+│   │   └── display/
+│   │       ├── __init__.py
+│   │       ├── base.py
+│   │       ├── factory.py
+│   │       ├── font_5x7.py
+│   │       ├── logging_display.py
+│   │       ├── ssd1306_i2c.py
+│   │       └── waveshare_147_st7789.py
 │   ├── __init__.py
 │   ├── agent.py
 │   ├── attributes.py
@@ -63,7 +71,8 @@ trive_aquasense/
 │   │   ├── test_hardware_dht22.py
 │   │   ├── test_hardware_ds18b20.py
 │   │   ├── test_hardware_ssd1306_i2c.py
-│   │   └── test_hardware_water_flow.py
+│   │   ├── test_hardware_water_flow.py
+│   │   └── test_hardware_waveshare_147_display.py
 │   ├── not_implemented/
 │   │   ├── __init__.py
 │   │   ├── test_i2c_water_level.py
@@ -76,10 +85,11 @@ trive_aquasense/
 │   │   ├── test_dht22_sensor.py
 │   │   ├── test_factory_build.py
 │   │   ├── test_logging_display.py
-│   │   ├── test_ssd1306_i2c.py.py
+│   │   ├── test_ssd1306_i2c.py
 │   │   ├── test_tbclientwrapper.py
 │   │   ├── test_telemetry_collector.py
-│   │   └── test_water_flow_sensor.py
+│   │   ├── test_water_flow_sensor.py
+│   │   └── test_waveshare_147_st7789.py
 │   └── __init__.py
 ├── .env
 ├── CHANGELOG.md
@@ -109,9 +119,10 @@ Future sensors (planned):
 
 ## Supported Displays
 
-| Display Type     | Output Type | Description        |
-|------------------|-------------|--------------------|
-| SSD1306 I2C OLED | I2C         | Small OLED Display |
+| Display Type          | Output Type | Description                   |
+|-----------------------|-------------|-------------------------------|
+| SSD1306 I2C OLED      | I2C         | Small OLED Display            |
+| Waveshare 1.47" LCD   | SPI         | ST7789 172x320 colour display |
 
 ## Getting Started
 
@@ -147,7 +158,7 @@ Future sensors (planned):
 Run directly:
 
 ```bash
-python main.py
+python -m monitoring_service.main
 ```
 
 Or deploy with systemd for production:
@@ -197,7 +208,7 @@ pytest tests/
 |------------|---------------|------------|
 | VCC        | 5V            | Power      |
 | GND        | GND           | Ground     |
-| Signal     | GPIO17        | Signal Pin |
+| Signal     | GPIO23        | Signal Pin |
 
 Signal pin requires pull-up; pigpio sets internal pull-up automatically
 
@@ -208,6 +219,18 @@ Signal pin requires pull-up; pigpio sets internal pull-up automatically
 | GND | GND        | Ground |
 | SDA | GPIO3      | Data   |
 | SCL | GPIO5      | Clock  |
+
+#### Waveshare 1.47" LCD (ST7789)
+| Pin | Connection | Notes           |
+|-----|------------|-----------------|
+| VCC | 3.3V       | Power           |
+| GND | GND        | Ground          |
+| DIN | GPIO10     | SPI MOSI        |
+| CLK | GPIO11     | SPI SCLK        |
+| CS  | GPIO8      | SPI CE0         |
+| DC  | GPIO25     | Data/Command    |
+| RST | GPIO27     | Reset           |
+| BL  | GPIO18     | Backlight (PWM) |
 
 ## License
 

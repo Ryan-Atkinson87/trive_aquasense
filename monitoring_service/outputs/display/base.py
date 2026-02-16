@@ -55,3 +55,6 @@ class BaseDisplay(ABC):
             snapshot: Telemetry snapshot containing ts, device_name, and values.
         """
         raise NotImplementedError
+
+    def close(self) -> None:
+        """Release hardware resources. Override in drivers that acquire them."""
