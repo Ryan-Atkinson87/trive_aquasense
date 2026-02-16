@@ -76,16 +76,17 @@ def test_waveshare_display_renders_partial_values(display):
 
 
 @pytest.mark.hardware
-def test_waveshare_display_close(display):
+def test_waveshare_display_close():
     """Verify close() turns off backlight and releases resources."""
+    d = Waveshare147ST7789Display(DISPLAY_CONFIG)
     snapshot = {
         "ts": time.time(),
         "device_name": "hw-test",
         "values": {"water_temperature": 22.0},
     }
-    display.render(snapshot)
+    d.render(snapshot)
     time.sleep(1)
 
-    display.close()
+    d.close()
     # After close, backlight should be off (visual confirmation)
     time.sleep(1)
