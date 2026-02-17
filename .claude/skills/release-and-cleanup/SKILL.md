@@ -1,5 +1,5 @@
 ---
-name: post-release-cleanup
+name: release-and-cleanup
 description: Use after merging a release PR when the user needs to create the final release tag and clean up test/RC tags
 ---
 
@@ -49,6 +49,11 @@ After merging a release PR in GitHub, perform the following steps to finalize th
 3. Run `git tag` to show remaining tags
 4. Verify only release tags (v*.*.* without suffixes) remain
 5. Confirm the new release tag is present both locally and on origin
+
+## GitHub Release Reminder
+1. Remind the user to create or update the GitHub Release for this version
+2. The release should be created at: https://github.com/Ryan-Atkinson87/trive_aquasense/releases
+3. It should reference the tag just pushed and include highlights from the CHANGELOG
 
 ## Summary
 Provide a summary of:
