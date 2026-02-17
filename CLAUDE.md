@@ -47,14 +47,15 @@ Sensors → InputManager → MonitoringAgent → OutputManager → Displays
 - **agent.py** — `MonitoringAgent` runs the main loop. Only orchestration layer — delegates to `InputManager` for collection and `OutputManager` for rendering
 - **config_loader.py** — Merges `config.json` + `.env`, validates required fields. No other module reads files directly
 - **inputs/input_manager.py** — `InputManager` wraps `SensorFactory` + `TelemetryCollector` behind a single `collect()` interface
-- **inputs/sensors/** — One driver per sensor type (`BaseSensor` ABC, `read()` returns raw dict). Factory validates config and builds `SensorBundle` dataclasses
+- **inputs/sensors/** — One driver per sensor type (`BaseSensor` ABC, `read()` returns raw dict). Factory validates config and builds `SensorBundle` dataclasses. `GPIOSensor` intermediate base class provides shared GPIO validation. `constants.py` defines `VALID_GPIO_PINS`. `non_functional/` holds WIP drivers not yet production-ready (e.g. `i2c_water_level`)
 - **telemetry.py** — `TelemetryCollector` owns per-sensor interval scheduling, key mapping, calibration, EMA smoothing, and range filtering
 - **outputs/output_manager.py** — `OutputManager` fans out snapshots to displays, isolates failures, manages cleanup via `close()`
 - **outputs/display/** — Display drivers (`BaseDisplay` ABC, `render()` + `close()`). Factory builds from config
 - **outputs/status_model.py** — `DisplayStatus` dataclass consumed by all display drivers
 - **TBClientWrapper.py** — ThingsBoard MQTT client abstraction
 - **attributes.py** — Static device attributes (hostname, MAC, IP, device_name) sent to ThingsBoard
-- **exceptions/** — Custom domain exceptions (e.g. `UnknownSensorTypeError`, `InvalidSensorConfigError`)
+- **__version__.py** — Single-source version string (e.g. `"2.4.1"`)
+- **exceptions/** — Custom domain exceptions: `FactoryError` base, `UnknownSensorTypeError`, `InvalidSensorConfigError`, plus `GPIOValueError` in `gpio_sensor.py`
 - **logging_setup.py** — Central logger with `RotatingFileHandler` (5MB, 3 backups) + console
 
 ### Factory + Plugin Pattern
@@ -77,6 +78,8 @@ Raw sensor `read()` → key mapping → calibration (`value * slope + offset`) �
 - Production config: `/etc/trive_aquasense/config.json`
 - Production install: `/opt/trive_aquasense`
 - No secrets in code. No module reads config files directly — only `ConfigLoader`.
+- **docs/** — Additional documentation (e.g. `SENSOR_INTERFACE.md`)
+- **versions/** — Archived release zip files
 
 ## Testing Conventions
 
