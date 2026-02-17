@@ -73,7 +73,7 @@ class MonitoringAgent:
             self._read_and_send_attributes()
             end_time = time.time()
             elapsed = end_time - start_time
-            delay = max(0, int(self._poll_period - elapsed))
+            delay = max(0.0, self._poll_period - elapsed)
             time.sleep(delay)
 
     def _read_and_send_telemetry(self) -> None:
@@ -82,22 +82,22 @@ class MonitoringAgent:
 
         Also renders the telemetry snapshot to all configured outputs.
         """
-        self._logger.info("Reading telemetry...")
-
         values = self._input_manager.collect()
+
+        if not values:
+            self._logger.debug("No sensors due this cycle.")
+            return
+
+        self._logger.info(f"Collected telemetry: {values}")
+
+        self._tb_client.send_telemetry(values)
+        self._logger.info("Telemetry sent.")
 
         snapshot = {
             "ts": int(time.time() * 1000),
             "device_name": self._attributes_collector.device_name,
             "values": values,
         }
-
-        self._logger.info(f"Collected telemetry: {values}")
-
-        self._logger.info("Sending telemetry...")
-        self._tb_client.send_telemetry(values)
-        self._logger.info("Telemetry sent.")
-
         self._output_manager.render(snapshot)
 
     def _read_and_send_attributes(self) -> None:

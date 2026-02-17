@@ -17,8 +17,6 @@ Usage:
     config = loader.as_dict()
 """
 
-# TODO: config loader doesn't currently fail when no config is available, fix this.
-
 from __future__ import annotations
 
 import os
@@ -83,7 +81,6 @@ class ConfigLoader:
     """
 
 
-    # TODO: config loader doesn't currently fail when no config is available, fix this.
 
     def __init__(self, logger):
         """

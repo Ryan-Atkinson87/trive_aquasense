@@ -4,9 +4,23 @@ Format: Keep a Changelog. Versioning: SemVer (MAJOR.MINOR.PATCH).
 
 ## [Unreleased]
 ### Added
-- (Planned) Internal version tracking.
-- (Planned) SQLite que for offline storage and retries.
+- (Planned) SQLite queue for offline storage and retries.
 - (Planned) HTTP implementation for sending data to places other than ThingsBoard.
+
+## [v2.4.1] - 2026-02-17
+
+### Added
+- `__version__.py` for internal version tracking, logged at startup.
+- Unit tests to verify driver ACCEPTED_KWARGS, REQUIRED_KWARGS, and COERCERS align with `__init__` signatures.
+- Version check step in prepare-release skill.
+
+### Fixed
+- DS18B20 water temperature now rounded to 1 decimal place to match air_temperature format.
+- Poll period drift caused by `int()` truncation in delay calculation; now preserves sub-second accuracy.
+- Noisy telemetry logging when no sensors are due; replaced with single debug message.
+
+### Removed
+- Stale TODO comments in config_loader.py that referenced already-implemented functionality.
 
 ## [v2.4.0] - 2026-02-16
 
