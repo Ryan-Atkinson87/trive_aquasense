@@ -58,6 +58,7 @@ trive_aquasense/
 │   │       ├── ssd1306_i2c.py
 │   │       └── waveshare_147_st7789.py
 │   ├── __init__.py
+│   ├── __version__.py
 │   ├── agent.py
 │   ├── attributes.py
 │   ├── config_loader.py
@@ -83,6 +84,7 @@ trive_aquasense/
 │   │   ├── test_config_loader.py
 │   │   ├── test_dht22_factory.py
 │   │   ├── test_dht22_sensor.py
+│   │   ├── test_driver_kwargs_alignment.py
 │   │   ├── test_factory_build.py
 │   │   ├── test_logging_display.py
 │   │   ├── test_ssd1306_i2c.py
