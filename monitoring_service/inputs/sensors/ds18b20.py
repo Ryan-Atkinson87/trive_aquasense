@@ -136,5 +136,5 @@ class DS18B20Sensor(BaseSensor):
         Returns:
             dict: Mapping with a single key "temperature" (float, °C).
         """
-        temp_c = self._read_temp()
+        temp_c = round(self._read_temp(), 1)
         return {"temperature": temp_c}
