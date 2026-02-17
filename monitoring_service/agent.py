@@ -73,7 +73,7 @@ class MonitoringAgent:
             self._read_and_send_attributes()
             end_time = time.time()
             elapsed = end_time - start_time
-            delay = max(0, int(self._poll_period - elapsed))
+            delay = max(0.0, self._poll_period - elapsed)
             time.sleep(delay)
 
     def _read_and_send_telemetry(self) -> None:
