@@ -7,6 +7,7 @@ client, and starts the monitoring agent.
 """
 
 import logging
+from monitoring_service.__version__ import __version__
 from monitoring_service.config_loader import ConfigLoader
 from monitoring_service.logging_setup import setup_logging
 from monitoring_service.inputs.input_manager import InputManager
@@ -28,6 +29,8 @@ def main():
     bootstrap_logger = logging.getLogger("bootstrap")
     bootstrap_logger.setLevel(logging.INFO)
     bootstrap_logger.addHandler(logging.StreamHandler())
+
+    bootstrap_logger.info(f"Trive Aquasense v{__version__}")
 
     config = ConfigLoader(logger=bootstrap_logger).as_dict()
 
