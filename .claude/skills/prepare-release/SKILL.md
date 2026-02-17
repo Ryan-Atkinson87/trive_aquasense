@@ -11,6 +11,10 @@ When preparing this project for release, perform the following checks:
 1. Verify at least one RC tag exists (rc1, rc2, etc.) for this release
 2. Check there are no uncommitted changes (`git status` should be clean)
 
+## Version
+1. Check `monitoring_service/__version__.py` contains the correct release version
+2. If the version needs updating, bump it to match the release tag
+
 ## Documentation
 1. Verify CHANGELOG.md has been updated with changes for this release
 2. Check README.md has any relevant changes documented
