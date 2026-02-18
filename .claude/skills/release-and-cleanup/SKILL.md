@@ -55,6 +55,12 @@ After merging a release PR in GitHub, perform the following steps to finalize th
 2. The release should be created at: https://github.com/Ryan-Atkinson87/trive_aquasense/releases
 3. It should reference the tag just pushed and include highlights from the CHANGELOG
 
+## CLAUDE.md Review
+1. Read CLAUDE.md and compare it against the current codebase structure
+2. Verify that documented modules, directories, and patterns still match the code
+3. If anything is out of date or missing, update CLAUDE.md and include the changes in a commit
+4. If CLAUDE.md is already accurate, note that no changes were needed
+
 ## Summary
 Provide a summary of:
 - ✅ Release tag created and pushed
@@ -62,3 +68,4 @@ Provide a summary of:
 - 🗑️ Number of RC tags deleted
 - 🗑️ Feature branch deleted (if confirmed by user)
 - 📋 List of remaining branches and tags
+- 📄 CLAUDE.md status (updated or already accurate)

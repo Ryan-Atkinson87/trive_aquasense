@@ -11,29 +11,25 @@ Trive Aquasense is a structured Python agent for Raspberry Pi that reads aquariu
 ## Commands
 
 ```bash
-# Run tests (unit only, no hardware needed)
-pytest tests/unit/
-
-# Run a single test file
-pytest tests/unit/test_dht22_sensor.py
-
-# Run hardware integration tests (requires Pi + sensors)
-pytest -m hardware tests/
-
-# Run all tests
-pytest tests/
-
-# Run the application
-python -m monitoring_service.main
+# Shell state doesn't persist between Bash calls, so always chain with activate:
+source venv/bin/activate && pytest tests/unit/
+source venv/bin/activate && pytest tests/unit/test_dht22_sensor.py
+source venv/bin/activate && pytest -m hardware tests/
+source venv/bin/activate && pytest tests/
+source venv/bin/activate && python -m monitoring_service.main
 ```
 
 ## Architecture
 
 ### Module Isolation (Hard Rule)
 
-Each module must be unaware of the internals of any other module. No cross-import spaghetti, no shared global state, no circular dependencies. All interaction happens via clear interfaces and constructor injection.
+Each module must be unaware of the internals of any other module. No cross-import spaghetti, no shared global state, no circular dependencies. All interaction happens via clear interfaces and constructor injection. Each module talks to interfaces and contracts, not implementations.
 
 **Dependency direction:** dependencies flow inward toward simple data structures.
+
+**Each layer knows only its own job.** A module does one thing, takes its dependencies via constructor injection, and knows nothing about the layers above or beside it. Logging is centrally configured — never imported ad-hoc inside domain logic. Only the factory knows concrete classes. Only `ConfigLoader` reads config files.
+
+**Replaceability test:** you should be able to swap any layer's implementation (e.g. replace MQTT with HTTP, swap a sensor library) without any other module noticing.
 
 ```
 Sensors → InputManager → MonitoringAgent → OutputManager → Displays
@@ -47,14 +43,15 @@ Sensors → InputManager → MonitoringAgent → OutputManager → Displays
 - **agent.py** — `MonitoringAgent` runs the main loop. Only orchestration layer — delegates to `InputManager` for collection and `OutputManager` for rendering
 - **config_loader.py** — Merges `config.json` + `.env`, validates required fields. No other module reads files directly
 - **inputs/input_manager.py** — `InputManager` wraps `SensorFactory` + `TelemetryCollector` behind a single `collect()` interface
-- **inputs/sensors/** — One driver per sensor type (`BaseSensor` ABC, `read()` returns raw dict). Factory validates config and builds `SensorBundle` dataclasses
+- **inputs/sensors/** — One driver per sensor type (`BaseSensor` ABC, `read()` returns raw dict). Factory validates config and builds `SensorBundle` dataclasses. `GPIOSensor` intermediate base class provides shared GPIO validation. `constants.py` defines `VALID_GPIO_PINS`. `non_functional/` holds WIP drivers not yet production-ready (e.g. `i2c_water_level`)
 - **telemetry.py** — `TelemetryCollector` owns per-sensor interval scheduling, key mapping, calibration, EMA smoothing, and range filtering
 - **outputs/output_manager.py** — `OutputManager` fans out snapshots to displays, isolates failures, manages cleanup via `close()`
 - **outputs/display/** — Display drivers (`BaseDisplay` ABC, `render()` + `close()`). Factory builds from config
 - **outputs/status_model.py** — `DisplayStatus` dataclass consumed by all display drivers
 - **TBClientWrapper.py** — ThingsBoard MQTT client abstraction
 - **attributes.py** — Static device attributes (hostname, MAC, IP, device_name) sent to ThingsBoard
-- **exceptions/** — Custom domain exceptions (e.g. `UnknownSensorTypeError`, `InvalidSensorConfigError`)
+- **__version__.py** — Single-source version string (e.g. `"2.4.1"`)
+- **exceptions/** — Custom domain exceptions: `FactoryError` base, `UnknownSensorTypeError`, `InvalidSensorConfigError`, plus `GPIOValueError` in `gpio_sensor.py`
 - **logging_setup.py** — Central logger with `RotatingFileHandler` (5MB, 3 backups) + console
 
 ### Factory + Plugin Pattern
@@ -77,6 +74,8 @@ Raw sensor `read()` → key mapping → calibration (`value * slope + offset`) �
 - Production config: `/etc/trive_aquasense/config.json`
 - Production install: `/opt/trive_aquasense`
 - No secrets in code. No module reads config files directly — only `ConfigLoader`.
+- **docs/** — Additional documentation (e.g. `SENSOR_INTERFACE.md`)
+- **versions/** — Archived release zip files
 
 ## Testing Conventions
 
@@ -101,3 +100,4 @@ Raw sensor `read()` → key mapping → calibration (`value * slope + offset`) �
 - Feature branches: `v2.x.x-feature-name`
 - Pi test tags: `v2.x.x-pi_testN`
 - Semantic versioning (MAJOR.MINOR.PATCH)
+- Pull requests into `dev` and `main` are created via GitHub, not the CLI

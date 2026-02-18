@@ -79,6 +79,17 @@ class DHT22Sensor(GPIOSensor):
         except GPIOValueError as e:
             raise DHT22ValueError(str(e)) from e
 
+    def _reset_sensor(self) -> None:
+        """
+        Tear down a stale sensor so the next read() re-creates it.
+        """
+        if self.sensor is not None:
+            try:
+                self.sensor.exit()
+            except Exception:
+                pass
+            self.sensor = None
+
     def _create_sensor(self) -> Any:
         """
         Create and initialise the underlying DHT22 sensor instance.
@@ -107,12 +118,14 @@ class DHT22Sensor(GPIOSensor):
         try:
             temperature = self.sensor.temperature
         except Exception as e:
+            self._reset_sensor()
             raise DHT22ReadError(f"Failed to read DHT22 sensor temperature: {e}")
         if temperature is None:
             raise DHT22ReadError("Temperature reading returned None")
         try:
             humidity = self.sensor.humidity
         except Exception as e:
+            self._reset_sensor()
             raise DHT22ReadError(f"Failed to read DHT22 sensor humidity: {e}")
         if humidity is None:
             raise DHT22ReadError("Humidity reading returned None")
