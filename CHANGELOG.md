@@ -7,6 +7,18 @@ Format: Keep a Changelog. Versioning: SemVer (MAJOR.MINOR.PATCH).
 - (Planned) SQLite queue for offline storage and retries.
 - (Planned) HTTP implementation for sending data to places other than ThingsBoard.
 
+## [v2.4.2] - 2026-02-18
+
+### Added
+- Unit test for DHT22 sensor reset on read failure.
+- `pi-testing` skill for creating release candidate tags.
+
+### Fixed
+- DHT22 sensor not recovering after stale `libgpiod` handle; sensor now tears down and re-creates on read failure instead of failing permanently.
+
+### Changed
+- CLAUDE.md updated with module isolation principles, layer responsibility rules, and venv activation instructions.
+
 ## [v2.4.1] - 2026-02-17
 
 ### Added
