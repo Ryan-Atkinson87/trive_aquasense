@@ -8,8 +8,9 @@ description: Use when preparing for a release, deploying, or when the user asks 
 When preparing this project for release, perform the following checks:
 
 ## Git Release Process
-1. Verify at least one RC tag exists (rc1, rc2, etc.) for this release
-2. Check there are no uncommitted changes (`git status` should be clean)
+1. Verify you're on the `dev` branch. If not, stop and inform the user.
+2. Verify at least one RC tag exists (rc1, rc2, etc.) for this release
+3. Check there are no uncommitted changes (`git status` should be clean)
 
 ## Version
 1. Check `monitoring_service/__version__.py` contains the correct release version
