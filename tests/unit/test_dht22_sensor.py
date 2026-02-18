@@ -84,3 +84,30 @@ def test_read_raises_on_none_humidity(sensor_ok, monkeypatch):
     monkeypatch.setattr(device.__class__, "humidity", property(lambda self: _hum_none()))
     with pytest.raises(DHT22ReadError):
         sensor_ok.read()
+
+def test_reset_sensor_on_read_failure(sensor_ok):
+    """After a read failure, the stale sensor is torn down so the next read re-creates it."""
+    # First read creates the sensor
+    sensor_ok.read()
+    assert sensor_ok.sensor is not None
+
+    # Swap in a device that raises OSError (simulates [Errno 22] Invalid argument)
+    class _FailingDevice:
+        @property
+        def temperature(self):
+            raise OSError(22, "Invalid argument")
+        def exit(self):
+            pass
+
+    sensor_ok.sensor = _FailingDevice()
+
+    with pytest.raises(DHT22ReadError):
+        sensor_ok.read()
+
+    # After failure, sensor should be reset to None
+    assert sensor_ok.sensor is None
+
+    # Next read should re-create the sensor and succeed
+    result = sensor_ok.read()
+    assert "temperature" in result
+    assert "humidity" in result
