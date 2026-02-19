@@ -104,3 +104,13 @@ Raw sensor `read()` → key mapping → calibration (`value * slope + offset`) �
 - **Commit message prefixes:**
   - On a versioned feature branch (e.g. `v2.4.2-some-feature`): prefix with `v2.4.2 - `
   - On `main` or `dev` directly: ask the user to confirm before committing, then prefix with `adhoc - `
+
+## INSTRUCTIONS.md
+
+`INSTRUCTIONS.md` is a companion file for use as Claude.ai project context (UI conversations). It mirrors the architecture and rules in this file but is written without CLI-specific commands.
+
+- It is gitignored — never commit it, never create it if it does not exist
+- It must be kept in sync with this file **only on machines where it already exists**
+- The `prepare-release` and `release-and-cleanup` skills both include a step to regenerate it
+- If you update this file outside of a skill, also update `INSTRUCTIONS.md` to reflect the changes
+- **If `INSTRUCTIONS.md` does not exist, skip all sync steps silently — do not create it**

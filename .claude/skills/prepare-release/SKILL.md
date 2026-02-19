@@ -35,6 +35,11 @@ When preparing this project for release, perform the following checks:
 ## Project Context
 1. Review CLAUDE.md to ensure it reflects current project state
 2. Update any outdated patterns or conventions
+3. If `INSTRUCTIONS.md` exists in the project root, regenerate it from CLAUDE.md:
+   - INSTRUCTIONS.md is the Claude.ai project instructions version — same content as CLAUDE.md but formatted for UI use (no CLI-specific commands, focuses on architecture and rules)
+   - Compare the current INSTRUCTIONS.md against CLAUDE.md and update any sections that are out of date
+   - INSTRUCTIONS.md is gitignored; no commit needed for this file
+   - **If INSTRUCTIONS.md does not exist, skip this step silently — do not create it**
 
 ## Code Quality
 1. Run linters and fix any issues

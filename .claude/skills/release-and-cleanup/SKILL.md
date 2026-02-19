@@ -60,6 +60,11 @@ After merging a release PR in GitHub, perform the following steps to finalize th
 2. Verify that documented modules, directories, and patterns still match the code
 3. If anything is out of date or missing, update CLAUDE.md and include the changes in a commit
 4. If CLAUDE.md is already accurate, note that no changes were needed
+5. If `INSTRUCTIONS.md` exists in the project root, regenerate it to keep it in sync with CLAUDE.md:
+   - INSTRUCTIONS.md is the Claude.ai project instructions version — same content as CLAUDE.md but formatted for UI use (no CLI-specific commands, focuses on architecture and rules)
+   - Compare the current INSTRUCTIONS.md against CLAUDE.md and update any sections that are out of date
+   - INSTRUCTIONS.md is gitignored; no commit needed for this file
+   - **If INSTRUCTIONS.md does not exist, skip this step silently — do not create it**
 
 ## Summary
 Provide a summary of:
