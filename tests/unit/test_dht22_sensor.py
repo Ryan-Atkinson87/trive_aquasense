@@ -6,7 +6,7 @@ import pytest
 # --- Fake external libs before importing the driver ---
 fake_board = types.ModuleType("board")
 setattr(fake_board, "D17", object())
-sys.modules["board"] = fake_board
+sys.modules.setdefault("board", fake_board)
 
 class _FakeDHT22Device:
     def __init__(self, pin):
@@ -31,7 +31,7 @@ class _FakeAdafruitDHT(types.ModuleType):
     def DHT22(self, pin):
         return self._device(pin)
 
-sys.modules["adafruit_dht"] = _FakeAdafruitDHT()
+sys.modules.setdefault("adafruit_dht", _FakeAdafruitDHT())
 
 # Now import after fakes are in place
 from monitoring_service.inputs.sensors.dht22 import (

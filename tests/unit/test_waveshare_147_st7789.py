@@ -4,14 +4,11 @@ from unittest.mock import MagicMock, call
 
 import pytest
 
-# ---- Mock hardware modules BEFORE import ----
-mock_gpio = MagicMock()
-mock_spidev = MagicMock()
-mock_rpi = MagicMock()
-mock_rpi.GPIO = mock_gpio
-sys.modules["RPi"] = mock_rpi
-sys.modules["RPi.GPIO"] = mock_gpio
-sys.modules["spidev"] = mock_spidev
+# Hardware stubs are set up in conftest.py before this module is collected.
+# Read the mock objects back from sys.modules so assertions reference the exact
+# same objects the driver module captured when it was first imported.
+mock_gpio = sys.modules["RPi.GPIO"]
+mock_spidev = sys.modules["spidev"]
 
 from monitoring_service.outputs.display.waveshare_147_st7789 import (
     Waveshare147ST7789Display,
