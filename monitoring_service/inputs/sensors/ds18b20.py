@@ -7,9 +7,10 @@ Provides a sensor driver for the DS18B20 1-Wire temperature sensor.
 import glob
 import os
 from monitoring_service.inputs.sensors.base import BaseSensor
+from monitoring_service.exceptions.sensors import SensorReadError
 
 
-class DS18B20ReadError(Exception):
+class DS18B20ReadError(SensorReadError):
     """
     Raised when the DS18B20 sensor fails to return a valid reading.
     """

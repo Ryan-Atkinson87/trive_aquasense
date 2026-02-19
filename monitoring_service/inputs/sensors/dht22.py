@@ -7,21 +7,22 @@ Provides a sensor driver for the DHT22 temperature and humidity sensor.
 import adafruit_dht
 import board
 from monitoring_service.inputs.sensors.gpio_sensor import GPIOSensor, GPIOValueError
+from monitoring_service.exceptions.sensors import SensorInitError, SensorReadError, SensorValueError
 from typing import Any
 
-class DHT22InitError(Exception):
+class DHT22InitError(SensorInitError):
     """
     Raised when the DHT22 sensor cannot be initialised.
     """
     pass
 
-class DHT22ValueError(Exception):
+class DHT22ValueError(SensorValueError):
     """
     Raised when the DHT22 sensor is misconfigured or given invalid values.
     """
     pass
 
-class DHT22ReadError(Exception):
+class DHT22ReadError(SensorReadError):
     """
     Raised when reading data from the DHT22 sensor fails.
     """

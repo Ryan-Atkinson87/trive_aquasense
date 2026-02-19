@@ -36,6 +36,7 @@ sys.modules.setdefault("adafruit_dht", _FakeAdafruitDHT())
 # Now import after fakes are in place
 from monitoring_service.inputs.sensors.dht22 import (
     DHT22Sensor,
+    DHT22InitError,
     DHT22ReadError,
 )
 from monitoring_service.inputs.sensors.constants import VALID_GPIO_PINS
@@ -84,6 +85,15 @@ def test_read_raises_on_none_humidity(sensor_ok, monkeypatch):
     monkeypatch.setattr(device.__class__, "humidity", property(lambda self: _hum_none()))
     with pytest.raises(DHT22ReadError):
         sensor_ok.read()
+
+def test_create_sensor_raises_dht22_init_error(sensor_ok, monkeypatch):
+    """_create_sensor() must wrap adafruit_dht failures as DHT22InitError."""
+    def _boom(pin):
+        raise RuntimeError("hardware gone")
+    monkeypatch.setattr(sys.modules["adafruit_dht"], "DHT22", _boom)
+    with pytest.raises(DHT22InitError, match="Failed to create DHT22 sensor"):
+        sensor_ok._create_sensor()
+
 
 def test_reset_sensor_on_read_failure(sensor_ok):
     """After a read failure, the stale sensor is torn down so the next read re-creates it."""

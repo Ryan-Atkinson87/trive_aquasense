@@ -23,26 +23,32 @@ import threading
 from typing import Tuple, Dict
 
 from monitoring_service.inputs.sensors.gpio_sensor import GPIOSensor, GPIOValueError
+from monitoring_service.exceptions.sensors import (
+    SensorInitError,
+    SensorReadError,
+    SensorStopError,
+    SensorValueError,
+)
 
-class WaterFlowInitError(Exception):
+class WaterFlowInitError(SensorInitError):
     """
     Raised when the Water Flow sensor cannot be initialised.
     """
     pass
 
-class WaterFlowValueError(Exception):
+class WaterFlowValueError(SensorValueError):
     """
     Raised when the Water Flow sensor is misconfigured or given invalid values.
     """
     pass
 
-class WaterFlowReadError(Exception):
+class WaterFlowReadError(SensorReadError):
     """
     Raised when reading data from the Water Flow sensor fails.
     """
     pass
 
-class WaterFlowStopError(Exception):
+class WaterFlowStopError(SensorStopError):
     """
     Raised when stopping the Water Flow sensor fails.
     """

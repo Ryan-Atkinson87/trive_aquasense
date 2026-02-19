@@ -8,8 +8,9 @@ validation logic.
 from abc import ABC
 from monitoring_service.inputs.sensors.base import BaseSensor
 from monitoring_service.inputs.sensors.constants import VALID_GPIO_PINS
+from monitoring_service.exceptions.sensors import SensorValueError
 
-class GPIOValueError(Exception):
+class GPIOValueError(SensorValueError):
     """
     Raised when a GPIO sensor is misconfigured or uses an invalid GPIO pin.
     """
