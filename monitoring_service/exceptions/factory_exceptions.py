@@ -1,6 +1,9 @@
 from typing import Any, Optional
 
-class FactoryError(Exception):
+from .config_exceptions import ConfigurationError
+
+
+class FactoryError(ConfigurationError):
     """
     Base exception for factory-related errors.
     Carries optional context for better logs without string parsing.
