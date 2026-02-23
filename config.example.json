@@ -108,7 +108,7 @@
       "sample_window": 5,
       "sliding_window_s": 3,
       "glitch_us": 200,
-      "calibration_constant": 4.5
+      "calibration_constant": 3.3
     }
   ]
 }
