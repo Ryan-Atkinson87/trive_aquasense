@@ -178,6 +178,24 @@ def test_build_all_skips_invalid_and_logs(factory, base_valid_cfg, caplog):
     # ensure a warning mentioning skip is present
     assert any("Skipping sensor" in r.message for r in caplog.records)
 
+# ---------- full_id ----------
+
+def test_full_id_computed_from_type_and_id(factory, base_valid_cfg):
+    bundle = factory.build(base_valid_cfg)
+    assert bundle.full_id == "ds18b20_28-00000abc123"
+
+def test_full_id_uses_normalised_type(factory, base_valid_cfg):
+    cfg = dict(base_valid_cfg)
+    cfg["type"] = "DS18B20"
+    bundle = factory.build(cfg)
+    assert bundle.full_id == "ds18b20_28-00000abc123"
+
+def test_full_id_is_none_when_no_id(factory, base_valid_cfg):
+    cfg = dict(base_valid_cfg)
+    cfg.pop("id")
+    bundle = factory.build(cfg)
+    assert bundle.full_id is None
+
 # ---------- registry override warning ----------
 
 def test_register_override_warns(factory, caplog):

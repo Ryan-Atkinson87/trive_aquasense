@@ -62,6 +62,10 @@ def test_dht22_build_happy_path(factory, dht22_cfg_base):
     assert set(bundle.keys.keys()) == {"temperature", "humidity"}
     assert bundle.keys["temperature"] == "air_temperature"
 
+def test_dht22_full_id(factory, dht22_cfg_base):
+    bundle = factory.build(dht22_cfg_base)
+    assert bundle.full_id == "dht22_gpio17"
+
 def test_dht22_requires_all_required_kwargs(factory, dht22_cfg_base):
     # Remove id to violate REQUIRED_KWARGS = {"id","pin"} if you kept it that way
     cfg = dict(dht22_cfg_base)

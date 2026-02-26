@@ -41,6 +41,8 @@ class SensorBundle:
     smoothing: dict[str, int] = field(default_factory=dict)
     # Optional read frequency
     interval: Optional[int] = None
+    # Computed identifier: "{type_lower}_{id}", or None if no id in config
+    full_id: Optional[str] = None
 
 class SensorFactory:
     """
@@ -225,13 +227,17 @@ class SensorFactory:
                 cause=e,
             ) from e
 
+        sensor_id = sensor_config.get("id")
+        full_id = f"{sensor_type}_{sensor_id}" if sensor_id else None
+
         return SensorBundle(
             driver=driver,
             keys=keys_map,
             calibration=calibration_map,
             ranges=ranges_map,
             smoothing=smoothing_map,
-            interval=interval
+            interval=interval,
+            full_id=full_id,
         )
 
     def build_all(self, config) -> list[SensorBundle]:
