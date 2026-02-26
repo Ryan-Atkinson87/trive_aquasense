@@ -41,9 +41,15 @@ class TelemetryCollector:
     @staticmethod
     def _bundle_id(bundle) -> str:
         """
-        Build a stable identifier string for a sensor bundle based on the driver
-        type and available identifying attributes.
+        Build a stable identifier string for a sensor bundle.
+
+        Prefers ``bundle.full_id`` when set (e.g. ``ds18b20_28ff641d2b64``).
+        Falls back to driver-attribute inspection for bundles where no ``id``
+        was present in config.
         """
+        if bundle.full_id is not None:
+            return bundle.full_id
+
         driver = bundle.driver
         driver_name = driver.__class__.__name__
         identifier = (

@@ -226,6 +226,28 @@ def test_collision_last_wins(make_bundle):
     assert out["water_temperature"] == 22.0
 
 
+# ---------- _bundle_id ----------
+
+def test_bundle_id_uses_full_id_when_set():
+    driver = FakeDriver()
+    bundle = SensorBundle(driver=driver, keys={}, calibration={}, ranges={}, smoothing={}, interval=None, full_id="ds18b20_28ff641d2b64")
+    assert TelemetryCollector._bundle_id(bundle) == "ds18b20_28ff641d2b64"
+
+
+def test_bundle_id_falls_back_to_driver_attribute_when_full_id_is_none():
+    driver = FakeDriver()
+    driver.pin = 17
+    bundle = SensorBundle(driver=driver, keys={}, calibration={}, ranges={}, smoothing={}, interval=None, full_id=None)
+    assert TelemetryCollector._bundle_id(bundle) == "FakeDriver:17"
+
+
+def test_bundle_id_fallback_uses_hex_id_when_no_driver_attributes():
+    driver = FakeDriver()
+    bundle = SensorBundle(driver=driver, keys={}, calibration={}, ranges={}, smoothing={}, interval=None, full_id=None)
+    result = TelemetryCollector._bundle_id(bundle)
+    assert result.startswith("FakeDriver:0x")
+
+
 # ---------- Mapping drops unmapped keys ----------
 
 def test_unmapped_keys_are_dropped(make_bundle):
