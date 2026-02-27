@@ -165,3 +165,11 @@ class SSD1306I2CDisplay(BaseDisplay):
                 "Failed to render snapshot on SSD1306 OLED display",
                 exc_info=True,
             )
+
+    def close(self) -> None:
+        """Clear the OLED display and release hardware resources."""
+        try:
+            self._oled.fill(0)
+            self._oled.show()
+        except Exception:
+            self._logger.warning("Failed to close SSD1306 display", exc_info=True)

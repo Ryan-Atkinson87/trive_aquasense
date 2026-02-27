@@ -14,6 +14,10 @@ from monitoring_service.inputs.sensors.gpio_sensor import GPIOSensor, GPIOValueE
 
 class _ConcreteGPIO(GPIOSensor):
     """Minimal concrete subclass so we can instantiate GPIOSensor."""
+    name = property(lambda self: "test")
+    kind = property(lambda self: "test")
+    units = property(lambda self: "test")
+
     def read(self):
         return {}
 
