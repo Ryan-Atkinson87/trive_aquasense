@@ -69,7 +69,7 @@ Raw sensor `read()` → key mapping → calibration (`value * slope + offset`) �
 
 ## Configuration
 
-- **config.json** — Sensor/display definitions, `poll_period`, `device_name`, `log_level`, `mount_path` (see `config.example.json`)
+- **config.example.json** — Committed template for sensor/display definitions, `poll_period`, `device_name`, `log_level`, `mount_path`. Copy to `config.json` locally and on the Pi to configure the deployment. `config.json` is gitignored.
 - **.env** — `ACCESS_TOKEN` and `THINGSBOARD_SERVER` (required), `CONFIG_PATH` (optional override)
 - Production config: `/etc/trive_aquasense/config.json`
 - Production install: `/opt/trive_aquasense`

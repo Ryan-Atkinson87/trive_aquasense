@@ -1,6 +1,6 @@
 ---
 name: prepare-release
-description: Use after pi-testing when preparing for a release, deploying, or when the user asks to check if the project is ready for release
+description: Use after pi-testing i donwhen preparing for a release, deploying, or when the user asks to check if the project is ready for release
 ---
 
 # Prepare for Release
@@ -22,8 +22,7 @@ When preparing this project for release, perform the following checks:
 3. Review all documentation for accuracy
 
 ## Configuration Files
-1. Ensure any changes in `config.json` have been copied to `config.example.json`
-2. Ensure any changes in `.env` have been copied to `.env.example`
+1. Ensure any changes in `.env` have been copied to `.env.example`
    - IMPORTANT: Anonymize any confidential information (API keys, passwords, tokens, etc.)
    - Replace sensitive values with placeholders like `your_api_key_here` or `example_value`
 

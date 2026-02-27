@@ -109,7 +109,6 @@ trive_aquasense/
 ├── .env
 ├── CHANGELOG.md
 ├── config.example.json
-├── config.json
 ├── trive_aquasense_example.service
 ├── README.md
 └── requirements.txt
@@ -166,7 +165,11 @@ Future sensors (planned):
 
 3. Configure your `.env` file and `config.json`:
 
-- See `.env` and `config.json` example files.
+   ```bash
+   cp config.example.json config.json
+   cp .env.example .env
+   ```
+   Edit both files with your device-specific values (`ACCESS_TOKEN`, `THINGSBOARD_SERVER`, sensor IDs, etc.).
 
 ### Running the Application
 
