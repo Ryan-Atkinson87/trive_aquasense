@@ -54,3 +54,7 @@ class LoggingDisplay(BaseDisplay):
                 "Failed to render snapshot on logging display",
                 exc_info=True,
             )
+
+    def close(self) -> None:
+        """No hardware resources to release."""
+        pass

@@ -54,7 +54,12 @@ class BaseDisplay(ABC):
         Args:
             snapshot: Telemetry snapshot containing ts, device_name, and values.
         """
-        raise NotImplementedError
 
+    @abstractmethod
     def close(self) -> None:
-        """Release hardware resources. Override in drivers that acquire them."""
+        """
+        Release any hardware resources acquired by this display.
+
+        Drivers that hold no hardware resources must implement this as a no-op.
+        This method is called by OutputManager during shutdown.
+        """

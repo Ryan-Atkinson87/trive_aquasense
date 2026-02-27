@@ -178,9 +178,105 @@ def test_build_all_skips_invalid_and_logs(factory, base_valid_cfg, caplog):
     # ensure a warning mentioning skip is present
     assert any("Skipping sensor" in r.message for r in caplog.records)
 
+# ---------- full_id ----------
+
+def test_full_id_computed_from_type_and_id(factory, base_valid_cfg):
+    bundle = factory.build(base_valid_cfg)
+    assert bundle.full_id == "ds18b20_28-00000abc123"
+
+def test_full_id_uses_normalised_type(factory, base_valid_cfg):
+    cfg = dict(base_valid_cfg)
+    cfg["type"] = "DS18B20"
+    bundle = factory.build(cfg)
+    assert bundle.full_id == "ds18b20_28-00000abc123"
+
+def test_full_id_is_none_when_no_id(factory, base_valid_cfg):
+    cfg = dict(base_valid_cfg)
+    cfg.pop("id")
+    bundle = factory.build(cfg)
+    assert bundle.full_id is None
+
 # ---------- registry override warning ----------
 
 def test_register_override_warns(factory, caplog):
     with caplog.at_level("WARNING"):
         factory.register("ds18b20", DS18B20Sensor)
     assert any("Overriding driver" in r.message for r in caplog.records)
+
+# ---------- DEFAULT_PRECISION ----------
+
+def test_driver_default_precision_applied_when_config_has_none(factory, base_valid_cfg):
+    # DS18B20Sensor.DEFAULT_PRECISION = {"temperature": 1}
+    # keys_map: {"temperature": "water_temperature"}
+    # → bundle.precision should be {"water_temperature": 1}
+    cfg = dict(base_valid_cfg)
+    cfg.pop("precision", None)
+    bundle = factory.build(cfg)
+    assert bundle.precision == {"water_temperature": 1}
+
+def test_config_precision_overrides_driver_default(factory, base_valid_cfg):
+    # config supplies precision=2 for the canonical key → overrides driver default of 1
+    cfg = dict(base_valid_cfg)
+    cfg["precision"] = {"water_temperature": 2}
+    bundle = factory.build(cfg)
+    assert bundle.precision["water_temperature"] == 2
+
+def test_config_precision_partial_override_keeps_driver_default_for_other_keys(factory):
+    # Use a fake driver with two DEFAULT_PRECISION keys; config overrides only one
+    from monitoring_service.inputs.sensors.base import BaseSensor
+    from unittest.mock import MagicMock
+
+    class FakeSensor(BaseSensor):
+        REQUIRED_ANY_OF = [{"id"}]
+        ACCEPTED_KWARGS = {"id"}
+        DEFAULT_PRECISION = {"raw_a": 3, "raw_b": 1}
+
+        def __init__(self, *, id=None):
+            self.id = id
+
+        @property
+        def name(self): return "fake"
+        @property
+        def kind(self): return "fake"
+        @property
+        def units(self): return "unit"
+        def read(self): return {"raw_a": 1.0, "raw_b": 2.0}
+
+    f = SensorFactory(registry={"fake": FakeSensor})
+    cfg = {
+        "type": "fake",
+        "id": "sensor1",
+        "keys": {"raw_a": "can_a", "raw_b": "can_b"},
+        "precision": {"can_a": 5},   # override raw_a → can_a; raw_b → can_b uses driver default
+    }
+    bundle = f.build(cfg)
+    assert bundle.precision["can_a"] == 5    # config wins
+    assert bundle.precision["can_b"] == 1    # driver default preserved
+
+def test_driver_without_default_precision_unchanged(factory):
+    # Register a driver with no DEFAULT_PRECISION; bundle.precision should be {}
+    from monitoring_service.inputs.sensors.base import BaseSensor
+
+    class NoPrecisionSensor(BaseSensor):
+        REQUIRED_ANY_OF = [{"id"}]
+        ACCEPTED_KWARGS = {"id"}
+
+        def __init__(self, *, id=None):
+            self.id = id
+
+        @property
+        def name(self): return "nop"
+        @property
+        def kind(self): return "nop"
+        @property
+        def units(self): return "unit"
+        def read(self): return {"val": 1.0}
+
+    f = SensorFactory(registry={"nop": NoPrecisionSensor})
+    cfg = {
+        "type": "nop",
+        "id": "sensor1",
+        "keys": {"val": "canonical_val"},
+    }
+    bundle = f.build(cfg)
+    assert bundle.precision == {}

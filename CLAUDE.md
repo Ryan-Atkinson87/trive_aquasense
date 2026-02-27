@@ -93,6 +93,14 @@ Raw sensor `read()` → key mapping → calibration (`value * slope + offset`) �
   ```
   Setting them independently causes the driver to bind to an auto-generated child mock instead of your mock, so assertions on `mock_gpio` silently fail.
 
+## GitHub CLI
+
+- Always use `--json` with specific fields when calling `gh issue view` to avoid a GraphQL deprecation error from Projects (classic):
+  ```bash
+  gh issue view 61 --repo Ryan-Atkinson87/trive_aquasense --json title,body,labels,state
+  ```
+  Running `gh issue view` without `--json` triggers a non-fatal error about Projects (classic) sunset.
+
 ## Git Workflow
 
 - `main` — Production stable
@@ -104,6 +112,7 @@ Raw sensor `read()` → key mapping → calibration (`value * slope + offset`) �
 - **Commit message prefixes:**
   - On a versioned feature branch (e.g. `v2.4.2-some-feature`): prefix with `v2.4.2 - `
   - On `main` or `dev` directly: ask the user to confirm before committing, then prefix with `adhoc - `
+- **GitHub issue commits:** when a commit resolves or contributes to a GitHub issue, include the issue number in the message: `v2.5.0 - Fix pkg_resources test failure (#125)`
 
 ## INSTRUCTIONS.md
 

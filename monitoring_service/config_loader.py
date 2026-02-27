@@ -24,6 +24,13 @@ import json
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+from monitoring_service.exceptions.config_exceptions import (
+    ConfigFileNotFoundError,
+    InvalidConfigValueError,
+    MissingConfigKeyError,
+    MissingEnvironmentVarError,
+)
+
 ETC_CONFIG_PATH = Path("/etc/trive_aquasense/config.json")
 DEFAULT_CONFIG_FILENAME = "config.json"
 
@@ -50,7 +57,7 @@ def _load_json_config(path: Optional[Path], logger=None) -> Dict[str, Any]:
     Returns an empty dict if the file cannot be read.
     """
     if not path:
-        raise FileNotFoundError("ConfigLoader: config path was not resolved")
+        raise ConfigFileNotFoundError("ConfigLoader: config path was not resolved")
     try:
         with open(path, "r") as file:  # <- use builtins.open so tests can mock it
             return json.load(file)
@@ -151,7 +158,7 @@ class ConfigLoader:
         if missing:
             msg = f"Missing required environment variables: {', '.join(missing)}"
             _safe_log(self.logger, "error", msg)
-            raise EnvironmentError(msg)
+            raise MissingEnvironmentVarError(msg)
 
     def _get_poll_period(self) -> int:
         """
@@ -167,11 +174,11 @@ class ConfigLoader:
         try:
             poll = int(raw_value)
             if poll < 1:
-                raise ValueError("poll_period must be ≥ 1")
+                raise InvalidConfigValueError("poll_period must be ≥ 1")
             return poll
         except (ValueError, TypeError) as e:
             _safe_log(self.logger, "error", f"Invalid poll_period: {raw_value} ({e})")
-            raise
+            raise InvalidConfigValueError(f"Invalid poll_period: {raw_value}") from e
 
     def _get_device_name(self) -> str:
         """
@@ -187,14 +194,16 @@ class ConfigLoader:
         try:
             value = self.config["device_name"]
             if not isinstance(value, str) or not value.strip():
-                raise ValueError("device_name must be a non-empty string")
+                raise InvalidConfigValueError("device_name must be a non-empty string")
             return value
-        except KeyError:
-            _safe_log(self.logger, "error", "Missing required config: device_name")
-            raise
+        except KeyError as e:
+            msg = "Missing required config: device_name"
+            _safe_log(self.logger, "error", msg)
+            raise MissingConfigKeyError(msg) from e
         except (ValueError, TypeError) as e:
-            _safe_log(self.logger, "error", f"Invalid device_name: {self.config.get('device_name')} ({e})")
-            raise
+            msg = f"Invalid device_name: {self.config.get('device_name')} ({e})"
+            _safe_log(self.logger, "error", msg)
+            raise InvalidConfigValueError(msg) from e
 
     def _resolve_config_path(self) -> Path:
         env_path = os.getenv("CONFIG_PATH")
@@ -203,7 +212,7 @@ class ConfigLoader:
             if path.is_file():
                 self.logger.info(f"ConfigLoader: using config from CONFIG_PATH env var: {path}")
                 return path
-            raise FileNotFoundError(f"CONFIG_PATH set but file does not exist: {path}")
+            raise ConfigFileNotFoundError(f"CONFIG_PATH set but file does not exist: {path}")
 
         if ETC_CONFIG_PATH.is_file():
             self.logger.info(f"ConfigLoader: using config from {ETC_CONFIG_PATH}")
@@ -217,7 +226,7 @@ class ConfigLoader:
             )
             return local_path
 
-        raise FileNotFoundError(
+        raise ConfigFileNotFoundError(
             "ConfigLoader: no config.json found via CONFIG_PATH, /etc, or project directory"
         )
 
@@ -235,14 +244,16 @@ class ConfigLoader:
         try:
             value = self.config["mount_path"]
             if not isinstance(value, str) or not value:
-                raise ValueError("mount_path must be a string")
+                raise InvalidConfigValueError("mount_path must be a string")
             return value
-        except KeyError:
-            _safe_log(self.logger, "error", "Missing required config: mount_path")
-            raise
+        except KeyError as e:
+            msg = "Missing required config: mount_path"
+            _safe_log(self.logger, "error", msg)
+            raise MissingConfigKeyError(msg) from e
         except (ValueError, TypeError) as e:
-            _safe_log(self.logger, "error", f"Invalid mount_path: {self.config.get('mount_path')} ({e})")
-            raise
+            msg = f"Invalid mount_path: {self.config.get('mount_path')} ({e})"
+            _safe_log(self.logger, "error", msg)
+            raise InvalidConfigValueError(msg) from e
 
     def _get_log_level(self) -> str:
         """

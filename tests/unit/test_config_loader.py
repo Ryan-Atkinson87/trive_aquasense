@@ -4,6 +4,13 @@ import pytest
 from unittest.mock import patch, mock_open
 
 from monitoring_service.config_loader import ConfigLoader
+from monitoring_service.exceptions import (
+    ConfigurationError,
+    MissingEnvironmentVarError,
+    InvalidConfigValueError,
+    MissingConfigKeyError,
+    ConfigFileNotFoundError,
+)
 
 
 class DummyLogger:
@@ -63,7 +70,7 @@ def test_missing_env_vars_raises_error(mock_file, mock_resolve_path):
     mock_resolve_path.return_value = Path("/fake/config.json")
 
     logger = DummyLogger()
-    with pytest.raises(EnvironmentError):
+    with pytest.raises(MissingEnvironmentVarError):
         ConfigLoader(logger)
 
 
@@ -82,7 +89,7 @@ def test_invalid_poll_period_raises_value_error(mock_file, mock_resolve_path):
     mock_resolve_path.return_value = Path("/fake/config.json")
 
     logger = DummyLogger()
-    with pytest.raises(ValueError):
+    with pytest.raises(InvalidConfigValueError):
         ConfigLoader(logger)
 
 
@@ -101,7 +108,7 @@ def test_missing_device_name_raises_key_error(mock_file, mock_resolve_path):
     mock_resolve_path.return_value = Path("/fake/config.json")
 
     logger = DummyLogger()
-    with pytest.raises(KeyError):
+    with pytest.raises(MissingConfigKeyError):
         ConfigLoader(logger)
 
 

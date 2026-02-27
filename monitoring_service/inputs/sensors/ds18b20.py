@@ -7,9 +7,10 @@ Provides a sensor driver for the DS18B20 1-Wire temperature sensor.
 import glob
 import os
 from monitoring_service.inputs.sensors.base import BaseSensor
+from monitoring_service.exceptions.sensors import SensorReadError
 
 
-class DS18B20ReadError(Exception):
+class DS18B20ReadError(SensorReadError):
     """
     Raised when the DS18B20 sensor fails to return a valid reading.
     """
@@ -40,6 +41,7 @@ class DS18B20Sensor(BaseSensor):
     # Factory uses these for validation + filtering.
     REQUIRED_ANY_OF = [{"id"}, {"path"}]
     ACCEPTED_KWARGS = {"id", "path"}
+    DEFAULT_PRECISION: dict[str, int] = {"temperature": 1}
 
     def __init__(self, *, id: str | None = None, path: str | None = None,
                  kind: str = "Temperature", units: str = "C"):
@@ -136,5 +138,4 @@ class DS18B20Sensor(BaseSensor):
         Returns:
             dict: Mapping with a single key "temperature" (float, °C).
         """
-        temp_c = round(self._read_temp(), 1)
-        return {"temperature": temp_c}
+        return {"temperature": self._read_temp()}

@@ -104,11 +104,15 @@
         "water_flow_instant": { "min": 0, "max": 30 }
       },
       "smoothing": {},
+      "precision": {
+        "water_flow": 2,
+        "water_flow_instant": 2
+      },
       "interval": 5,
       "sample_window": 5,
       "sliding_window_s": 3,
       "glitch_us": 200,
-      "calibration_constant": 4.5
+      "calibration_constant": 3.3
     }
   ]
 }
