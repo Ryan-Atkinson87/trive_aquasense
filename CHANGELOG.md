@@ -7,6 +7,25 @@ Format: Keep a Changelog. Versioning: SemVer (MAJOR.MINOR.PATCH).
 - (Planned) SQLite queue for offline storage and retries.
 - (Planned) HTTP implementation for sending data to places other than ThingsBoard.
 
+## [v2.5.0] - 2026-02-27
+
+### Added
+- Shared sensor exception base hierarchy (`exceptions/sensors.py`): `SensorInitError`, `SensorReadError`, `SensorStopError`, `SensorValueError`. All sensor drivers now raise from this hierarchy (#62).
+- Configuration error hierarchy (`exceptions/config_exceptions.py`): `ConfigError`, `ConfigFileNotFoundError`, `ConfigValidationError`, `MissingEnvVarError` (#69).
+- `full_id` computed attribute on `SensorBundle` — combines sensor type and id at build time (e.g. `"ds18b20_28-abc"`). Used by `TelemetryCollector` for consistent bundle identification (#61, #129).
+- Precision pipeline step in `TelemetryCollector` — `_apply_precision()` rounds telemetry values to configured decimal places as the final pipeline step (#128).
+- `DEFAULT_PRECISION: dict[str, int]` class attribute on `WaterFlowSensor`, `DS18B20Sensor`, and `DHT22Sensor`. `SensorFactory.build()` merges driver defaults with config-supplied precision overrides (#134).
+- Comprehensive unit test coverage added across all modules: `MonitoringAgent`, `InputManager`, `OutputManager`, `DisplayStatus`, display factory, sensor exceptions, factory exceptions, `GPIOSensor`, `TelemetryCollector`, `LoggingSetup`, and all sensor drivers (#126).
+- `check-github-issues` and `organise-releases` Claude Code skills.
+
+### Changed
+- `TelemetryCollector._bundle_id()` now reads `bundle.full_id` directly instead of constructing its own identifier (#129).
+- `DS18B20Sensor.read()` no longer rounds internally — precision is now applied uniformly by `TelemetryCollector._apply_precision()` (#134).
+- ABC contracts for `BaseSensor` and `BaseDisplay` are now formally enforced with `@abstractmethod` declarations (#127).
+
+### Fixed
+- `pkg_resources` import in tests replaced with `importlib.metadata` after `pkg_resources` was dropped from `setuptools` (#125).
+
 ## [v2.4.2] - 2026-02-18
 
 ### Added
