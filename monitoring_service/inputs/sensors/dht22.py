@@ -39,6 +39,7 @@ class DHT22Sensor(GPIOSensor):
     REQUIRED_KWARGS = ["id", "pin"]
     ACCEPTED_KWARGS = ["id", "pin"]
     COERCERS = {"pin": int}
+    DEFAULT_PRECISION: dict[str, int] = {"temperature": 1, "humidity": 1}
 
     def __init__(self, *, id: str | None = None, pin: int | None = None,
                  kind: str = "Temperature", units: str = "C"):

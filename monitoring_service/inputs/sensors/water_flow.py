@@ -78,6 +78,7 @@ class WaterFlowSensor(GPIOSensor):
         "calibration_constant",
     ]
     COERCERS = {"pin": int}
+    DEFAULT_PRECISION: dict[str, int] = {"flow_instant": 2, "flow_smoothed": 2}
 
     def __init__(
         self,

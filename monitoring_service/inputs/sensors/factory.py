@@ -179,6 +179,15 @@ class SensorFactory:
                 sensor_id=sensor_config.get("id")
             )
 
+        driver_default_precision = getattr(driver_class, "DEFAULT_PRECISION", {})
+        if driver_default_precision:
+            translated_defaults = {
+                keys_map[raw_key]: decimals
+                for raw_key, decimals in driver_default_precision.items()
+                if raw_key in keys_map
+            }
+            precision_map = {**translated_defaults, **precision_map}
+
         driver_config = sensor_config
 
         required_kwargs = getattr(driver_class, "REQUIRED_KWARGS", None)
