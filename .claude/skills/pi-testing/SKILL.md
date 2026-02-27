@@ -1,6 +1,6 @@
 ---
 name: pi-testing
-description: Use when preparing a release candidate tag for Pi testing, after the feature branch has been merged into dev via GitHub
+description: Use after merging to dev from feature branch when preparing a release candidate tag for Pi testing, after the feature branch has been merged into dev via GitHub
 ---
 
 # Pi Testing - Create RC Tag

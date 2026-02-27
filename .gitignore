@@ -46,3 +46,6 @@ build/
 # Local only files
 _local_notes/
 versions/
+
+# Claude.ai project instructions (generated from CLAUDE.md, not for version control)
+INSTRUCTIONS.md

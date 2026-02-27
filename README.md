@@ -32,7 +32,9 @@ trive_aquasense/
 ├── monitoring_service/
 │   ├── exceptions/
 │   │   ├── __init__.py
-│   │   └── factory_exceptions.py
+│   │   ├── config_exceptions.py
+│   │   ├── factory_exceptions.py
+│   │   └── sensors.py
 │   ├── inputs/
 │   │   ├── __init__.py
 │   │   ├── input_manager.py
@@ -80,14 +82,25 @@ trive_aquasense/
 │   │   └── test_hardware_i2c_water_level.py
 │   ├── unit/
 │   │   ├── __init__.py
+│   │   ├── conftest.py
+│   │   ├── test_abc_contracts.py
+│   │   ├── test_agent.py
 │   │   ├── test_attributes.py
 │   │   ├── test_config_loader.py
 │   │   ├── test_dht22_factory.py
 │   │   ├── test_dht22_sensor.py
+│   │   ├── test_display_factory.py
 │   │   ├── test_driver_kwargs_alignment.py
 │   │   ├── test_factory_build.py
+│   │   ├── test_factory_exceptions.py
+│   │   ├── test_gpio_sensor.py
+│   │   ├── test_input_manager.py
 │   │   ├── test_logging_display.py
+│   │   ├── test_logging_setup.py
+│   │   ├── test_output_manager.py
+│   │   ├── test_sensor_exceptions.py
 │   │   ├── test_ssd1306_i2c.py
+│   │   ├── test_status_model.py
 │   │   ├── test_tbclientwrapper.py
 │   │   ├── test_telemetry_collector.py
 │   │   ├── test_water_flow_sensor.py
@@ -96,7 +109,6 @@ trive_aquasense/
 ├── .env
 ├── CHANGELOG.md
 ├── config.example.json
-├── config.json
 ├── trive_aquasense_example.service
 ├── README.md
 └── requirements.txt
@@ -153,7 +165,11 @@ Future sensors (planned):
 
 3. Configure your `.env` file and `config.json`:
 
-- See `.env` and `config.json` example files.
+   ```bash
+   cp config.example.json config.json
+   cp .env.example .env
+   ```
+   Edit both files with your device-specific values (`ACCESS_TOKEN`, `THINGSBOARD_SERVER`, sensor IDs, etc.).
 
 ### Running the Application
 

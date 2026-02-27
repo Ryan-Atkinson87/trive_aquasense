@@ -29,6 +29,7 @@ def make_bundle():
         calibration: dict[str, dict[str, float]] = None,
         ranges: dict[str, dict[str, float]] = None,
         smoothing: dict[str, int] = None,
+        precision: dict[str, int] = None,
         interval: int | None = None,
         raise_exc: Exception | None = None,
     ) -> SensorBundle:
@@ -39,6 +40,7 @@ def make_bundle():
             calibration=calibration or {},
             ranges=ranges or {},
             smoothing=smoothing or {},
+            precision=precision or {},
             interval=interval,
         )
     return _make
@@ -226,6 +228,28 @@ def test_collision_last_wins(make_bundle):
     assert out["water_temperature"] == 22.0
 
 
+# ---------- _bundle_id ----------
+
+def test_bundle_id_uses_full_id_when_set():
+    driver = FakeDriver()
+    bundle = SensorBundle(driver=driver, keys={}, calibration={}, ranges={}, smoothing={}, interval=None, full_id="ds18b20_28ff641d2b64")
+    assert TelemetryCollector._bundle_id(bundle) == "ds18b20_28ff641d2b64"
+
+
+def test_bundle_id_falls_back_to_driver_attribute_when_full_id_is_none():
+    driver = FakeDriver()
+    driver.pin = 17
+    bundle = SensorBundle(driver=driver, keys={}, calibration={}, ranges={}, smoothing={}, interval=None, full_id=None)
+    assert TelemetryCollector._bundle_id(bundle) == "FakeDriver:17"
+
+
+def test_bundle_id_fallback_uses_hex_id_when_no_driver_attributes():
+    driver = FakeDriver()
+    bundle = SensorBundle(driver=driver, keys={}, calibration={}, ranges={}, smoothing={}, interval=None, full_id=None)
+    result = TelemetryCollector._bundle_id(bundle)
+    assert result.startswith("FakeDriver:0x")
+
+
 # ---------- Mapping drops unmapped keys ----------
 
 def test_unmapped_keys_are_dropped(make_bundle):
@@ -236,3 +260,52 @@ def test_unmapped_keys_are_dropped(make_bundle):
     c = TelemetryCollector(bundles=[b])
     out = c.as_dict()
     assert out == {"A": 1}
+
+
+# ---------- Precision ----------
+
+def test_precision_rounds_to_specified_decimal_places(make_bundle):
+    # 10 / 3.3 = 3.030303...  should round to 3.03
+    b = make_bundle(
+        driver_payload={"flow": 10 / 3.3},
+        keys={"flow": "water_flow"},
+        precision={"water_flow": 2},
+    )
+    c = TelemetryCollector(bundles=[b])
+    out = c.as_dict()
+    assert out["water_flow"] == 3.03
+
+
+def test_precision_zero_rounds_to_integer(make_bundle):
+    b = make_bundle(
+        driver_payload={"flow": 3.7},
+        keys={"flow": "water_flow"},
+        precision={"water_flow": 0},
+    )
+    c = TelemetryCollector(bundles=[b])
+    out = c.as_dict()
+    assert out["water_flow"] == 4.0
+
+
+def test_precision_only_affects_configured_keys(make_bundle):
+    b = make_bundle(
+        driver_payload={"flow": 10 / 3.3, "temp": 21.12345},
+        keys={"flow": "water_flow", "temp": "water_temperature"},
+        precision={"water_flow": 2},
+    )
+    c = TelemetryCollector(bundles=[b])
+    out = c.as_dict()
+    assert out["water_flow"] == 3.03
+    assert out["water_temperature"] == pytest.approx(21.12345)
+
+
+def test_precision_no_config_passes_through_unmodified(make_bundle):
+    raw = 10 / 3.3
+    b = make_bundle(
+        driver_payload={"flow": raw},
+        keys={"flow": "water_flow"},
+        # no precision configured
+    )
+    c = TelemetryCollector(bundles=[b])
+    out = c.as_dict()
+    assert out["water_flow"] == pytest.approx(raw)

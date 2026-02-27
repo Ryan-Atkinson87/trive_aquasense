@@ -8,6 +8,8 @@ from monitoring_service.inputs.sensors.water_flow import (
     WaterFlowSensor,
     WaterFlowInitError,
     WaterFlowReadError,
+    WaterFlowStopError,
+    WaterFlowValueError,
 )
 
 import pigpio as real_pigpio  # will be monkeypatched in tests
@@ -254,3 +256,57 @@ def test_waterflow_del_calls_stop(monkeypatch):
     # trigger __del__
     s.__del__()
     assert called.get('stop', False) is True
+
+
+# --- WaterFlowValueError raise paths -------------------------------------
+
+def test_waterflow_value_error_invalid_pin_type():
+    """String pin raises WaterFlowValueError before pigpio is touched."""
+    with pytest.raises(WaterFlowValueError, match="Invalid pin type"):
+        WaterFlowSensor(id="f1", pin="17")
+
+
+def test_waterflow_value_error_invalid_pin_number():
+    """Out-of-range pin raises WaterFlowValueError before pigpio is touched."""
+    with pytest.raises(WaterFlowValueError, match="not a valid GPIO pin"):
+        WaterFlowSensor(id="f1", pin=99999)
+
+
+# --- WaterFlowStopError raise paths --------------------------------------
+
+def test_waterflow_stop_raises_on_callback_cancel_failure(monkeypatch):
+    """WaterFlowStopError is raised when the callback cannot be cancelled."""
+    fake_pi = FakePi(connected=True)
+    monkeypatch.setattr("pigpio.pi", lambda: fake_pi)
+    s = WaterFlowSensor(id="f1", pin=17)
+
+    class _FailingCallback:
+        def cancel(self):
+            raise RuntimeError("cancel failed")
+
+    s._callback = _FailingCallback()
+    with pytest.raises(WaterFlowStopError):
+        s.stop()
+    # Prevent __del__ from re-triggering the same failure as an unraisable exception.
+    s._callback = None
+    s.sensor = None
+
+
+def test_waterflow_stop_raises_on_pigpio_stop_failure(monkeypatch):
+    """WaterFlowStopError is raised when pigpio.pi.stop() throws."""
+    fake_pi = FakePi(connected=True)
+    monkeypatch.setattr("pigpio.pi", lambda: fake_pi)
+    s = WaterFlowSensor(id="f1", pin=17)
+
+    # Cleanly remove callback so we reach the sensor.stop() branch
+    s._callback = None
+
+    class _FailingPi:
+        def stop(self):
+            raise RuntimeError("pigpio stop failed")
+
+    s.sensor = _FailingPi()
+    with pytest.raises(WaterFlowStopError):
+        s.stop()
+    # Prevent __del__ from re-triggering the same failure as an unraisable exception.
+    s.sensor = None

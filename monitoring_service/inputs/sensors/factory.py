@@ -41,6 +41,10 @@ class SensorBundle:
     smoothing: dict[str, int] = field(default_factory=dict)
     # Optional read frequency
     interval: Optional[int] = None
+    # Computed identifier: "{type_lower}_{id}", or None if no id in config
+    full_id: Optional[str] = None
+    # Decimal precision per canonical key (e.g. {"water_flow": 2})
+    precision: dict[str, int] = field(default_factory=dict)
 
 class SensorFactory:
     """
@@ -154,6 +158,15 @@ class SensorFactory:
             if value < 1:
                 raise InvalidSensorConfigError(f"Smoothing for '{key}' must be an integer ≥ 1: {value}")
 
+        precision_map = sensor_config.get("precision") or {}
+        for key, decimals in precision_map.items():
+            if not isinstance(key, str) or not key.strip():
+                raise InvalidSensorConfigError(f"'{key}' in precision_map must be a string.")
+            if key not in canonical:
+                raise InvalidSensorConfigError(f"metadata references unknown canonical key '{key}' in precision_map")
+            if not isinstance(decimals, int) or decimals < 0:
+                raise InvalidSensorConfigError(f"Precision for '{key}' must be an integer ≥ 0: {decimals}")
+
         interval = sensor_config.get("interval")
         if interval is not None and (not isinstance(interval, int) or interval < 1):
             raise InvalidSensorConfigError("'interval' must be an integer ≥ 1 if provided")
@@ -165,6 +178,15 @@ class SensorFactory:
                 known_types=list(self._registry.keys()),
                 sensor_id=sensor_config.get("id")
             )
+
+        driver_default_precision = getattr(driver_class, "DEFAULT_PRECISION", {})
+        if driver_default_precision:
+            translated_defaults = {
+                keys_map[raw_key]: decimals
+                for raw_key, decimals in driver_default_precision.items()
+                if raw_key in keys_map
+            }
+            precision_map = {**translated_defaults, **precision_map}
 
         driver_config = sensor_config
 
@@ -225,13 +247,18 @@ class SensorFactory:
                 cause=e,
             ) from e
 
+        sensor_id = sensor_config.get("id")
+        full_id = f"{sensor_type}_{sensor_id}" if sensor_id else None
+
         return SensorBundle(
             driver=driver,
             keys=keys_map,
             calibration=calibration_map,
             ranges=ranges_map,
             smoothing=smoothing_map,
-            interval=interval
+            precision=precision_map,
+            interval=interval,
+            full_id=full_id,
         )
 
     def build_all(self, config) -> list[SensorBundle]:

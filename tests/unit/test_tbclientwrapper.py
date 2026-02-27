@@ -1,5 +1,13 @@
+import sys
+from unittest.mock import MagicMock
+
+# tb_device_mqtt imports pkg_resources internally, which is unavailable in Python 3.13+
+# with modern setuptools. All tests mock TBDeviceMqttClient anyway, so we stub the
+# module here to prevent the import from failing.
+sys.modules.setdefault("tb_device_mqtt", MagicMock())
+
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from monitoring_service.TBClientWrapper import TBClientWrapper
 
 
@@ -30,9 +38,10 @@ def test_connect_success(dummy_logger):
     mock_client.connect.assert_called_once()
 
 
-@patch("monitoring_service.TBClientWrapper.TBDeviceMqttClient")
-def test_connect_failure_logs_and_raises(mock_mqtt, client):
-    mock_mqtt.return_value.connect.side_effect = Exception("connection failed")
+def test_connect_failure_logs_and_raises(dummy_logger):
+    mock_client = MagicMock()
+    mock_client.connect.side_effect = Exception("connection failed")
+    client = TBClientWrapper("server", "token", dummy_logger, client_class=lambda *args, **kwargs: mock_client)
 
     with pytest.raises(Exception):
         client.connect()

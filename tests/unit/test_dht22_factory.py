@@ -6,7 +6,7 @@ import pytest
 # Fake external libs before importing factory and drivers
 fake_board = types.ModuleType("board")
 setattr(fake_board, "D17", object())
-sys.modules["board"] = fake_board
+sys.modules.setdefault("board", fake_board)
 
 class _FakeDHT22Device:
     def __init__(self, pin):
@@ -24,7 +24,7 @@ class _FakeAdafruitDHT(types.ModuleType):
         self._device = _FakeDHT22Device
     def DHT22(self, pin): return self._device(pin)
 
-sys.modules["adafruit_dht"] = _FakeAdafruitDHT()
+sys.modules.setdefault("adafruit_dht", _FakeAdafruitDHT())
 
 from monitoring_service.inputs.sensors.factory import SensorFactory, SensorBundle
 from monitoring_service.exceptions import InvalidSensorConfigError
@@ -61,6 +61,10 @@ def test_dht22_build_happy_path(factory, dht22_cfg_base):
     assert bundle.interval == 5
     assert set(bundle.keys.keys()) == {"temperature", "humidity"}
     assert bundle.keys["temperature"] == "air_temperature"
+
+def test_dht22_full_id(factory, dht22_cfg_base):
+    bundle = factory.build(dht22_cfg_base)
+    assert bundle.full_id == "dht22_gpio17"
 
 def test_dht22_requires_all_required_kwargs(factory, dht22_cfg_base):
     # Remove id to violate REQUIRED_KWARGS = {"id","pin"} if you kept it that way
