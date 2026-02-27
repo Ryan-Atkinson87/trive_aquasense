@@ -43,6 +43,8 @@ class SensorBundle:
     interval: Optional[int] = None
     # Computed identifier: "{type_lower}_{id}", or None if no id in config
     full_id: Optional[str] = None
+    # Decimal precision per canonical key (e.g. {"water_flow": 2})
+    precision: dict[str, int] = field(default_factory=dict)
 
 class SensorFactory:
     """
@@ -156,6 +158,15 @@ class SensorFactory:
             if value < 1:
                 raise InvalidSensorConfigError(f"Smoothing for '{key}' must be an integer ≥ 1: {value}")
 
+        precision_map = sensor_config.get("precision") or {}
+        for key, decimals in precision_map.items():
+            if not isinstance(key, str) or not key.strip():
+                raise InvalidSensorConfigError(f"'{key}' in precision_map must be a string.")
+            if key not in canonical:
+                raise InvalidSensorConfigError(f"metadata references unknown canonical key '{key}' in precision_map")
+            if not isinstance(decimals, int) or decimals < 0:
+                raise InvalidSensorConfigError(f"Precision for '{key}' must be an integer ≥ 0: {decimals}")
+
         interval = sensor_config.get("interval")
         if interval is not None and (not isinstance(interval, int) or interval < 1):
             raise InvalidSensorConfigError("'interval' must be an integer ≥ 1 if provided")
@@ -236,6 +247,7 @@ class SensorFactory:
             calibration=calibration_map,
             ranges=ranges_map,
             smoothing=smoothing_map,
+            precision=precision_map,
             interval=interval,
             full_id=full_id,
         )

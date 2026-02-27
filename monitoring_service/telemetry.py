@@ -145,6 +145,20 @@ class TelemetryCollector:
                 ranged_dict[raw_key] = raw_value
         return ranged_dict
 
+    @staticmethod
+    def _apply_precision(bundle, ranged: dict) -> dict:
+        """
+        Apply decimal precision rounding to telemetry values where configured.
+        """
+        result = {}
+        precision = getattr(bundle, "precision", {}) or {}
+        for key, value in ranged.items():
+            if key in precision and isinstance(value, (int, float)):
+                result[key] = round(value, precision[key])
+            else:
+                result[key] = value
+        return result
+
     def as_dict(self) -> dict[str, Any]:
         """
         Collect telemetry from all due sensor bundles and return a flattened
@@ -166,6 +180,7 @@ class TelemetryCollector:
             calibrated = self._apply_calibration(bundle, mapped)
             smoothed = self._apply_smoothing(bundle, calibrated)
             ranged = self._apply_ranges(bundle, smoothed)
+            precise = self._apply_precision(bundle, ranged)
             self._last_read[bundle_id] = now
-            telemetry_data.update(ranged)
+            telemetry_data.update(precise)
         return telemetry_data
