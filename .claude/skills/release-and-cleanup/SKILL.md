@@ -1,6 +1,6 @@
 ---
 name: release-and-cleanup
-description: Use after merging a release PR when the user needs to create the final release tag and clean up test/RC tags
+description: Use after prepare-release, merging a release PR when the user needs to create the final release tag and clean up test/RC tags
 ---
 
 # Post-Release Cleanup

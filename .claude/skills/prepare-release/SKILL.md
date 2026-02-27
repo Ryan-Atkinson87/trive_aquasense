@@ -1,6 +1,6 @@
 ---
 name: prepare-release
-description: Use when preparing for a release, deploying, or when the user asks to check if the project is ready for release
+description: Use after pi-testing when preparing for a release, deploying, or when the user asks to check if the project is ready for release
 ---
 
 # Prepare for Release
