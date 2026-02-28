@@ -28,6 +28,12 @@ class BaseDisplay(ABC):
         self._config = config
         self._refresh_period = int(config.get("refresh_period", 0))
         self._last_render_ts: float = 0.0
+        self._show_startup: bool = bool(config.get("show_startup", False))
+
+    @property
+    def show_startup(self) -> bool:
+        """Whether this display participates in bootstrap startup rendering."""
+        return self._show_startup
 
     def _should_render(self) -> bool:
         """
