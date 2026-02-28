@@ -273,6 +273,29 @@ class Waveshare147ST7789Display(BaseDisplay):
         except Exception:
             self._logger.warning("Render failed", exc_info=True)
 
+    def render_startup(self, message: str) -> None:
+        """
+        Render a bootstrap progress message centred on the display.
+
+        Args:
+            message: Short status string to display.
+        """
+        try:
+            self._clear_framebuffer(self._rgb565(0, 0, 0))
+
+            white = self._rgb565(255, 255, 255)
+            scale = self.FONT_SCALE
+            tw = self._text_width(message, scale)
+            x = max(0, (self.WIDTH - tw) // 2)
+            y = self.HEIGHT // 2 - (7 * scale) // 2
+            self.draw_text(x, y, message, white, scale)
+
+            self._set_window()
+            self._write_data(self._framebuffer)
+
+        except Exception:
+            self._logger.warning("Failed to render startup message on Waveshare display", exc_info=True)
+
     # ------------------------------------------------------------------
     # Cleanup
     # ------------------------------------------------------------------

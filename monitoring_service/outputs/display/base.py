@@ -62,6 +62,19 @@ class BaseDisplay(ABC):
         """
 
     @abstractmethod
+    def render_startup(self, message: str) -> None:
+        """
+        Render a bootstrap progress message to the display.
+
+        Called by OutputManager during the service startup sequence for
+        displays with show_startup=True. Drivers that have no useful startup
+        view must implement this as a no-op.
+
+        Args:
+            message: Short status string to display (e.g. "Connecting...").
+        """
+
+    @abstractmethod
     def close(self) -> None:
         """
         Release any hardware resources acquired by this display.

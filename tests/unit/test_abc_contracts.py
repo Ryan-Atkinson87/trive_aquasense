@@ -30,11 +30,13 @@ def _make_sensor_class(*, name=True, kind=True, units=True, read=True):
     return type("ConcreteTestSensor", (BaseSensor,), attrs)
 
 
-def _make_display_class(*, render=True, close=True):
+def _make_display_class(*, render=True, close=True, render_startup=True):
     """Return a concrete BaseDisplay subclass, omitting methods as requested."""
     attrs = {}
     if render:
         attrs["render"] = lambda self, snapshot: None
+    if render_startup:
+        attrs["render_startup"] = lambda self, message: None
     if close:
         attrs["close"] = lambda self: None
     return type("ConcreteTestDisplay", (BaseDisplay,), attrs)
@@ -90,5 +92,10 @@ class TestBaseDisplayContracts:
 
     def test_missing_close_raises(self):
         cls = _make_display_class(close=False)
+        with pytest.raises(TypeError):
+            cls({})
+
+    def test_missing_render_startup_raises(self):
+        cls = _make_display_class(render_startup=False)
         with pytest.raises(TypeError):
             cls({})

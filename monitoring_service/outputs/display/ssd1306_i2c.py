@@ -166,6 +166,32 @@ class SSD1306I2CDisplay(BaseDisplay):
                 exc_info=True,
             )
 
+    def render_startup(self, message: str) -> None:
+        """
+        Render a bootstrap progress message centred on the OLED display.
+
+        Args:
+            message: Short status string to display.
+        """
+        try:
+            self._draw.rectangle((0, 0, self._width, self._height), outline=0, fill=0)
+
+            bbox = self._draw.textbbox((0, 0), message, font=self._font)
+            text_width = bbox[2] - bbox[0]
+            text_height = bbox[3] - bbox[1]
+            x = max(0, (self._width - text_width) // 2)
+            y = max(0, (self._height - text_height) // 2)
+            self._draw.text((x, y), message, font=self._font, fill=255)
+
+            self._oled.image(self._image)
+            self._oled.show()
+
+        except Exception:
+            self._logger.warning(
+                "Failed to render startup message on SSD1306 OLED display",
+                exc_info=True,
+            )
+
     def close(self) -> None:
         """Clear the OLED display and release hardware resources."""
         try:
