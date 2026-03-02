@@ -52,8 +52,10 @@ def main():
     displays = build_displays(
         displays_config=config.get("displays", []),
         logger=logger,
+        version=__version__,
     )
     output_manager = OutputManager(outputs=displays, logger=logger)
+    output_manager.render_startup(f"Aquasense v{__version__}")
 
     server = config["server"]
     token = config["token"]
@@ -72,7 +74,9 @@ def main():
         poll_period=poll_period,
     )
 
+    output_manager.render_startup("Connecting...")
     client.connect()
+    output_manager.render_startup("Connected")
 
     try:
         agent.start()

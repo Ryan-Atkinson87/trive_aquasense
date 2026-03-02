@@ -74,3 +74,33 @@ def test_mixed_valid_and_invalid_displays():
     with patch.dict(display_factory._DISPLAY_TYPES, {"valid": mock_valid, "broken": mock_invalid}):
         result = display_factory.build_displays(config, logger)
     assert result == [mock_instance]
+
+
+def test_version_header_injected_into_system_screen_display():
+    logger = make_logger()
+    received_config = {}
+
+    def capture_config(cfg):
+        received_config.update(cfg)
+        return MagicMock()
+
+    config = [{"type": "logging", "enabled": True, "system_screen": True}]
+    with patch.dict(display_factory._DISPLAY_TYPES, {"logging": capture_config}):
+        display_factory.build_displays(config, logger, version="2.6.0")
+
+    assert received_config.get("_version_header") == "Aquasense v2.6.0"
+
+
+def test_version_header_not_injected_without_system_screen():
+    logger = make_logger()
+    received_config = {}
+
+    def capture_config(cfg):
+        received_config.update(cfg)
+        return MagicMock()
+
+    config = [{"type": "logging", "enabled": True}]
+    with patch.dict(display_factory._DISPLAY_TYPES, {"logging": capture_config}):
+        display_factory.build_displays(config, logger, version="2.6.0")
+
+    assert "_version_header" not in received_config

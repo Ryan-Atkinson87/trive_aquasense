@@ -55,6 +55,10 @@ class LoggingDisplay(BaseDisplay):
                 exc_info=True,
             )
 
+    def render_startup(self, message: str) -> None:
+        """Log a bootstrap progress message at INFO level."""
+        self._logger.info("Startup: %s", message)
+
     def close(self) -> None:
         """No hardware resources to release."""
         pass
