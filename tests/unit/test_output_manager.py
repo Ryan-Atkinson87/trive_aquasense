@@ -74,3 +74,57 @@ def test_close_logs_warning_on_failure_and_does_not_raise():
     manager.close()
 
     logger.warning.assert_called_once()
+
+
+# ---------------------------------------------------------------------------
+# render_startup tests
+# ---------------------------------------------------------------------------
+
+def make_startup_display(show_startup: bool):
+    d = MagicMock()
+    d.show_startup = show_startup
+    return d
+
+
+def test_render_startup_only_calls_opted_in_displays():
+    logger = make_logger()
+    d_on = make_startup_display(show_startup=True)
+    d_off = make_startup_display(show_startup=False)
+    manager = OutputManager(outputs=[d_on, d_off], logger=logger)
+
+    manager.render_startup("Connecting...")
+
+    d_on.render_startup.assert_called_once_with("Connecting...")
+    d_off.render_startup.assert_not_called()
+
+
+def test_render_startup_with_no_opted_in_displays_does_not_raise():
+    logger = make_logger()
+    d = make_startup_display(show_startup=False)
+    manager = OutputManager(outputs=[d], logger=logger)
+
+    manager.render_startup("Starting")
+
+
+def test_render_startup_failure_is_logged_and_does_not_remove_output():
+    logger = make_logger()
+    d = make_startup_display(show_startup=True)
+    d.render_startup.side_effect = Exception("hardware error")
+    manager = OutputManager(outputs=[d], logger=logger)
+
+    manager.render_startup("Starting")
+
+    logger.warning.assert_called_once()
+    assert d in manager._outputs
+
+
+def test_render_startup_failure_does_not_prevent_remaining_outputs():
+    logger = make_logger()
+    d1 = make_startup_display(show_startup=True)
+    d2 = make_startup_display(show_startup=True)
+    d1.render_startup.side_effect = Exception("fail")
+    manager = OutputManager(outputs=[d1, d2], logger=logger)
+
+    manager.render_startup("Starting")
+
+    d2.render_startup.assert_called_once_with("Starting")

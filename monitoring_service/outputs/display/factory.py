@@ -23,6 +23,7 @@ _DISPLAY_TYPES = {
 def build_displays(
     displays_config: List[Mapping[str, Any]],
     logger: logging.Logger,
+    version: str = "",
 ) -> List[Any]:
     """
     Build and initialise display instances from configuration.
@@ -30,6 +31,8 @@ def build_displays(
     Args:
         displays_config: List of display configuration mappings.
         logger: Logger instance.
+        version: Service version string injected into system-screen displays
+            as the ``_version_header`` config key (e.g. "Aquasense v2.6.0").
 
     Returns:
         List of successfully initialised display instances.
@@ -41,6 +44,8 @@ def build_displays(
         return displays
 
     for index, display_config in enumerate(displays_config):
+        if display_config.get("system_screen") and version:
+            display_config = dict(display_config, _version_header=f"Aquasense v{version}")
         if not display_config.get("enabled", False):
             continue
 

@@ -50,6 +50,27 @@ class OutputManager:
         for output in failed:
             self._outputs.remove(output)
 
+    def render_startup(self, message: str) -> None:
+        """
+        Render a bootstrap progress message to displays that opt in via show_startup.
+
+        A display failure during startup is logged but does not remove the display
+        from the active outputs list — startup rendering is best-effort.
+
+        Args:
+            message: Short status string (e.g. "Connecting...").
+        """
+        for output in self._outputs:
+            if not output.show_startup:
+                continue
+            try:
+                output.render_startup(message)
+            except Exception:
+                self._logger.warning(
+                    "Output render_startup failed",
+                    exc_info=True,
+                )
+
     def close(self) -> None:
         """Close all managed outputs, releasing hardware resources."""
         for output in self._outputs:

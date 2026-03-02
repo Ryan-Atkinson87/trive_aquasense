@@ -4,13 +4,20 @@ ssd1306_i2c.py
 Provides an SSD1306 I2C OLED display implementation for rendering telemetry
 snapshots using the Adafruit SSD1306 driver and PIL for text layout.
 
-This display renders a fixed 3-row layout:
+Normal mode (system_screen=False) renders a fixed 3-row telemetry layout:
   - Row 1: Metric labels (Water | Air | Humidity)
   - Row 2: Metric values with units
   - Row 3: Timestamp of last telemetry update
+
+System-screen mode (system_screen=True) renders a persistent status layout:
+  - Row 1: Version header (e.g. "Aquasense v2.6.0") — fixed
+  - Row 2: Second-most-recent system message
+  - Row 3: Most recent system message
+In this mode render() is a no-op; all updates arrive via render_startup().
 """
 
 import logging
+from collections import deque
 from datetime import datetime
 from typing import Mapping, Any
 
@@ -67,6 +74,9 @@ class SSD1306I2CDisplay(BaseDisplay):
 
             self._line_height = 10
 
+            self._header: str = config.get("_version_header", "Aquasense")
+            self._messages: deque[str] = deque(maxlen=2)
+
             self._logger.info(
                 "SSD1306 OLED initialised (%sx%s @ 0x%X)",
                 self._width,
@@ -110,7 +120,11 @@ class SSD1306I2CDisplay(BaseDisplay):
             }
 
         Rendering is skipped if the configured refresh period has not elapsed.
+        In system-screen mode this method is a no-op.
         """
+
+        if self._system_screen:
+            return
 
         if not self._should_render():
             return
@@ -165,6 +179,62 @@ class SSD1306I2CDisplay(BaseDisplay):
                 "Failed to render snapshot on SSD1306 OLED display",
                 exc_info=True,
             )
+
+    def render_startup(self, message: str) -> None:
+        """
+        Render a system/startup message to the OLED display.
+
+        In system-screen mode the display shows a fixed header on row 1 and
+        scrolls the last two messages on rows 2 and 3.
+
+        In normal mode the message is centred on the display (single-message
+        startup splash).
+
+        Args:
+            message: Short status string to display.
+        """
+        try:
+            if self._system_screen:
+                self._messages.append(message)
+                self._draw_system_screen()
+            else:
+                self._draw.rectangle((0, 0, self._width, self._height), outline=0, fill=0)
+
+                bbox = self._draw.textbbox((0, 0), message, font=self._font)
+                text_width = bbox[2] - bbox[0]
+                text_height = bbox[3] - bbox[1]
+                x = max(0, (self._width - text_width) // 2)
+                y = max(0, (self._height - text_height) // 2)
+                self._draw.text((x, y), message, font=self._font, fill=255)
+
+                self._oled.image(self._image)
+                self._oled.show()
+
+        except Exception:
+            self._logger.warning(
+                "Failed to render startup message on SSD1306 OLED display",
+                exc_info=True,
+            )
+
+    def _draw_system_screen(self) -> None:
+        """
+        Draw the 3-row system-screen layout and push it to the hardware.
+
+        Row 1 (y=0):  version header (fixed)
+        Row 2 (y=11): second-most-recent message (blank until two messages exist)
+        Row 3 (y=22): most recent message
+        """
+        self._draw.rectangle((0, 0, self._width, self._height), outline=0, fill=0)
+        self._draw.text((0, 0), self._header, font=self._font, fill=255)
+
+        msgs = list(self._messages)
+        if len(msgs) == 2:
+            self._draw.text((0, 11), msgs[0], font=self._font, fill=255)
+        if msgs:
+            self._draw.text((0, 22), msgs[-1], font=self._font, fill=255)
+
+        self._oled.image(self._image)
+        self._oled.show()
 
     def close(self) -> None:
         """Clear the OLED display and release hardware resources."""

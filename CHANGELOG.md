@@ -7,6 +7,17 @@ Format: Keep a Changelog. Versioning: SemVer (MAJOR.MINOR.PATCH).
 - (Planned) SQLite queue for offline storage and retries.
 - (Planned) HTTP implementation for sending data to places other than ThingsBoard.
 
+## [v2.6.0] - 2026-03-02
+
+### Added
+- `show_startup` config field on `BaseDisplay` — opts a display into bootstrap progress messages rendered via `render_startup()` (#131).
+- `render_startup()` abstract method on `BaseDisplay`; implemented on `SSD1306I2CDisplay`, `Waveshare147ST7789Display`, and `LoggingDisplay`. `OutputManager.render_startup()` fans messages out to opted-in displays (#132).
+- Startup sequence in `main.py` renders "Aquasense v{version}", "Connecting...", and "Connected" to opted-in displays on boot (#132).
+- `system_screen` config field on `BaseDisplay` — dedicates a display to a persistent system-status layout. Setting `system_screen: true` implicitly enables `show_startup`. Intended for the small OLED when a second display is connected (#132).
+- System-screen mode for `SSD1306I2CDisplay`: fixed version header on row 1, rolling two-message log on rows 2–3. `render()` is a no-op in this mode (#132).
+- Version header injected into system-screen displays via `build_displays()` factory — `__version__` is passed from `main.py` and merged into the display config as `_version_header`, keeping display drivers free of package-level imports (#132).
+- `MonitoringAgent` emits `render_startup("Collected HH:MM:SS")` and `render_startup("Sent HH:MM:SS")` after each telemetry cycle, feeding the system-screen rolling log (#132).
+
 ## [v2.5.0] - 2026-02-27
 
 ### Added

@@ -28,6 +28,19 @@ class BaseDisplay(ABC):
         self._config = config
         self._refresh_period = int(config.get("refresh_period", 0))
         self._last_render_ts: float = 0.0
+        self._system_screen: bool = bool(config.get("system_screen", False))
+        # system_screen displays always participate in startup/status rendering
+        self._show_startup: bool = bool(config.get("show_startup", False)) or self._system_screen
+
+    @property
+    def show_startup(self) -> bool:
+        """Whether this display participates in bootstrap startup rendering."""
+        return self._show_startup
+
+    @property
+    def system_screen(self) -> bool:
+        """Whether this display is dedicated to system/status messages."""
+        return self._system_screen
 
     def _should_render(self) -> bool:
         """
@@ -53,6 +66,19 @@ class BaseDisplay(ABC):
 
         Args:
             snapshot: Telemetry snapshot containing ts, device_name, and values.
+        """
+
+    @abstractmethod
+    def render_startup(self, message: str) -> None:
+        """
+        Render a bootstrap progress message to the display.
+
+        Called by OutputManager during the service startup sequence for
+        displays with show_startup=True. Drivers that have no useful startup
+        view must implement this as a no-op.
+
+        Args:
+            message: Short status string to display (e.g. "Connecting...").
         """
 
     @abstractmethod
