@@ -8,6 +8,7 @@
       "type": "ssd1306_i2c",
       "enabled": true,
       "show_startup": true,
+      "system_screen": true,
       "refresh_period": 5,
       "width": 128,
       "height": 32,
@@ -17,12 +18,14 @@
       "type": "logging",
       "enabled": true,
       "show_startup": false,
+      "system_screen": false,
       "refresh_period": 5
     },
     {
       "type": "waveshare_147_st7789",
       "enabled": true,
       "show_startup": false,
+      "system_screen": false,
       "refresh_period": 5,
       "spi": {
         "bus": 0,

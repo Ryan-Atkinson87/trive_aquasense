@@ -15,6 +15,7 @@ Usage:
 
 import logging
 import time
+from datetime import datetime
 
 from monitoring_service.inputs.input_manager import InputManager
 from monitoring_service.outputs.output_manager import OutputManager
@@ -89,9 +90,13 @@ class MonitoringAgent:
             return
 
         self._logger.info(f"Collected telemetry: {values}")
+        ts = datetime.now().strftime("%H:%M:%S")
+        self._output_manager.render_startup(f"Collected {ts}")
 
         self._tb_client.send_telemetry(values)
         self._logger.info("Telemetry sent.")
+        ts = datetime.now().strftime("%H:%M:%S")
+        self._output_manager.render_startup(f"Sent {ts}")
 
         snapshot = {
             "ts": int(time.time() * 1000),

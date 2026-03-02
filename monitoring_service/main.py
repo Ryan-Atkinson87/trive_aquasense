@@ -52,6 +52,7 @@ def main():
     displays = build_displays(
         displays_config=config.get("displays", []),
         logger=logger,
+        version=__version__,
     )
     output_manager = OutputManager(outputs=displays, logger=logger)
     output_manager.render_startup(f"Aquasense v{__version__}")
