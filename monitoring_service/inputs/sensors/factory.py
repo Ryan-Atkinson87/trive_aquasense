@@ -29,21 +29,13 @@ class SensorBundle:
     used during telemetry processing, such as key mapping, calibration, smoothing,
     range limits, and read interval.
     """
-    # The constructed driver (e.g., DS18B20Sensor())
     driver: BaseSensor
-    # Maps driver outputs → canonical keys
     keys: dict[str, str] = field(default_factory=dict)
-    # Calibration config per canonical key
     calibration: dict[str, dict[str,float]] = field(default_factory=dict)
-    # Range limits per canonical key
     ranges: dict[str, dict[str,int]] = field(default_factory=dict)
-    # Smoothing config per canonical key
     smoothing: dict[str, int] = field(default_factory=dict)
-    # Optional read frequency
     interval: Optional[int] = None
-    # Computed identifier: "{type_lower}_{id}", or None if no id in config
     full_id: Optional[str] = None
-    # Decimal precision per canonical key (e.g. {"water_flow": 2})
     precision: dict[str, int] = field(default_factory=dict)
 
 class SensorFactory:

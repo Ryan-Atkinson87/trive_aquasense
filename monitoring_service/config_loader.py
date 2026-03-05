@@ -1,13 +1,10 @@
 """
 config_loader.py
 
-Load configuration from environment variables and an optional JSON config file.
+Load configuration from environment variables and a required JSON config file.
 The loader validates required environment values and exposes a merged
-configuration dictionary via as_dict().
-
-If a config.json file cannot be located or loaded, an empty configuration is
-used. Startup currently fails only if required environment variables are
-missing.
+configuration dictionary via as_dict(). Startup fails if config.json cannot
+be located or if required environment variables are missing.
 
 Classes:
     ConfigLoader
@@ -52,9 +49,7 @@ def _safe_log(logger, level: str, msg: str) -> None:
 
 def _load_json_config(path: Optional[Path], logger=None) -> Dict[str, Any]:
     """
-    Load JSON configuration from the given file path.
-
-    Returns an empty dict if the file cannot be read.
+    Load JSON configuration from the given file path. Raises on failure.
     """
     if not path:
         raise ConfigFileNotFoundError("ConfigLoader: config path was not resolved")

@@ -35,7 +35,6 @@ class GPIOSensor(BaseSensor, ABC):
             raise GPIOValueError("Sensor missing required attribute 'pin'")
 
         if not isinstance(self.pin, int):
-            # fixed typo: use self.pin, not self.self.pin
             raise GPIOValueError(f"Invalid pin type: expected int, got {type(self.pin).__name__}")
 
         if self.pin not in VALID_GPIO_PINS:
