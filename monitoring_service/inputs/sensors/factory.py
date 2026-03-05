@@ -1,42 +1,23 @@
 """
 factory.py
 
-Provides the SensorFactory and SensorBundle abstractions. The factory constructs
-sensor drivers from configuration data, validates associated metadata, and
-returns SensorBundle objects that can be consumed by the telemetry collector
-without knowledge of driver internals.
+Provides the SensorFactory abstraction. The factory constructs sensor drivers
+from configuration data, validates associated metadata, and returns SensorBundle
+objects that can be consumed by the telemetry collector without knowledge of
+driver internals.
 """
 
 
-from typing import Optional
 from monitoring_service.inputs.sensors import dht22, water_flow
 from monitoring_service.inputs.sensors import ds18b20
-from dataclasses import dataclass, field
 from monitoring_service.inputs.sensors.base import BaseSensor
+from monitoring_service.inputs.sensors.models import SensorBundle
 from monitoring_service.exceptions import (InvalidSensorConfigError, UnknownSensorTypeError, FactoryError)
 
 # Set up logging
 from monitoring_service import PACKAGE_LOGGER_NAME
 import logging
 logger = logging.getLogger(f"{PACKAGE_LOGGER_NAME}.{__name__.split('.')[-1]}")
-
-@dataclass
-class SensorBundle:
-    """
-    Container object holding a sensor driver and its associated metadata.
-
-    A SensorBundle combines the constructed driver instance with configuration
-    used during telemetry processing, such as key mapping, calibration, smoothing,
-    range limits, and read interval.
-    """
-    driver: BaseSensor
-    keys: dict[str, str] = field(default_factory=dict)
-    calibration: dict[str, dict[str,float]] = field(default_factory=dict)
-    ranges: dict[str, dict[str,int]] = field(default_factory=dict)
-    smoothing: dict[str, int] = field(default_factory=dict)
-    interval: Optional[int] = None
-    full_id: Optional[str] = None
-    precision: dict[str, int] = field(default_factory=dict)
 
 class SensorFactory:
     """
