@@ -2,7 +2,7 @@
 attributes.py
 
 Provides the AttributesCollector class, responsible for gathering basic device
-attributes such as device name, IP address, and MAC address.
+attributes such as device name, IP address, MAC address, and software version.
 
 Classes:
     AttributesCollector
@@ -15,13 +15,15 @@ Usage:
 import socket
 import uuid
 
+from monitoring_service.__version__ import __version__
+
 
 class AttributesCollector:
     """
     Collect basic device attributes and expose them as a dictionary.
 
-    The collector gathers device name, IP address, and MAC address. Attribute
-    values are retrieved on demand when calling as_dict().
+    The collector gathers device name, IP address, MAC address, and software
+    version. Attribute values are retrieved on demand when calling as_dict().
     """
 
     def __init__(self, device_name, logger):
@@ -70,7 +72,7 @@ class AttributesCollector:
 
         Returns:
             dict: Attribute values including device_name, ip_address,
-            and mac_address.
+            mac_address, and software_version.
         """
 
         ip_address = self._get_ip_address()
@@ -79,4 +81,5 @@ class AttributesCollector:
             "device_name": self.device_name,
             "ip_address": ip_address,
             "mac_address": mac_address,
+            "software_version": __version__,
         }
