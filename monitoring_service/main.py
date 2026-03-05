@@ -38,6 +38,8 @@ def main():
         log_dir="log",
         log_file_name="monitoring_service.log",
         log_level=config["log_level"],
+        max_bytes=config["log_max_bytes"],
+        backup_count=config["log_backup_count"],
     )
 
     sensors_config = config.get("sensors", [])

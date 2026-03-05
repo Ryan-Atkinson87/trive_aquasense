@@ -79,6 +79,8 @@ class ConfigLoader:
       - device_name (str)
       - mount_path (str)
       - log_level (str, default "INFO")
+      - log_max_bytes (int, default 5242880)
+      - log_backup_count (int, default 3)
       - sensors (list)
     """
 
@@ -108,6 +110,8 @@ class ConfigLoader:
         self.device_name = self._get_device_name()
         self.mount_path = self._get_mount_path()
         self.log_level = self._get_log_level()
+        self.log_max_bytes = self._get_log_max_bytes()
+        self.log_backup_count = self._get_log_backup_count()
 
     def as_dict(self) -> Dict[str, Any]:
         """
@@ -121,6 +125,8 @@ class ConfigLoader:
             "device_name": self.device_name,
             "mount_path": self.mount_path,
             "log_level": self.log_level,
+            "log_max_bytes": self.log_max_bytes,
+            "log_backup_count": self.log_backup_count,
         }
 
         for key, value in self.config.items():
@@ -263,3 +269,41 @@ class ConfigLoader:
         except (ValueError, TypeError) as e:
             _safe_log(self.logger, "error", f"Invalid log_level: {value} ({e})")
             raise
+
+    def _get_log_max_bytes(self) -> int:
+        """
+        Retrieve the log_max_bytes from the JSON config or default to 5 MB.
+
+        Returns:
+            int: Maximum log file size in bytes before rotation.
+
+        Raises:
+            InvalidConfigValueError: If the value is not a positive integer.
+        """
+        raw = self.config.get("log_max_bytes", 5 * 1024 * 1024)
+        try:
+            value = int(raw)
+            if value < 1:
+                raise InvalidConfigValueError("log_max_bytes must be ≥ 1")
+            return value
+        except (ValueError, TypeError) as e:
+            raise InvalidConfigValueError(f"Invalid log_max_bytes: {raw}") from e
+
+    def _get_log_backup_count(self) -> int:
+        """
+        Retrieve the log_backup_count from the JSON config or default to 3.
+
+        Returns:
+            int: Number of rotated log files to retain.
+
+        Raises:
+            InvalidConfigValueError: If the value is not a non-negative integer.
+        """
+        raw = self.config.get("log_backup_count", 3)
+        try:
+            value = int(raw)
+            if value < 0:
+                raise InvalidConfigValueError("log_backup_count must be ≥ 0")
+            return value
+        except (ValueError, TypeError) as e:
+            raise InvalidConfigValueError(f"Invalid log_backup_count: {raw}") from e
