@@ -43,10 +43,10 @@ def _safe_log(logger, level: str, msg: str) -> None:
 
     if logger is None:
         return
-    fn = getattr(logger, level.lower(), None)
-    if callable(fn):
+    log_method = getattr(logger, level.lower(), None)
+    if callable(log_method):
         try:
-            fn(msg)
+            log_method(msg)
         except Exception:
             pass
 

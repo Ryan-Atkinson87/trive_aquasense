@@ -36,7 +36,7 @@ class TelemetryCollector:
         """
         self._bundles = bundles or []
         self._last_read: dict[str, float] = {}
-        self._ema: dict[tuple[str, str], float] = {}
+        self._ema_state: dict[tuple[str, str], float] = {}
 
     @staticmethod
     def _bundle_id(bundle) -> str:
@@ -117,14 +117,14 @@ class TelemetryCollector:
             if not isinstance(value, (int, float)) or window is None or window < 2:
                 smoothed_dict[key] = value
                 continue
-            prev = self._ema.get((uid, key))
+            prev = self._ema_state.get((uid, key))
             if prev is None:
-                self._ema[(uid, key)] = value
+                self._ema_state[(uid, key)] = value
                 smoothed_dict[key] = value
                 continue
             alpha = 2 / (window + 1)
             smoothed = (alpha * value) + ((1 - alpha) * prev)
-            self._ema[(uid, key)] = smoothed
+            self._ema_state[(uid, key)] = smoothed
             smoothed_dict[key] = smoothed
         return smoothed_dict
 
