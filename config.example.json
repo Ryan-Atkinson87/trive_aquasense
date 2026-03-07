@@ -3,6 +3,8 @@
   "device_name": "RasPiZero_01",
   "mount_path": "/",
   "log_level": "INFO",
+  "log_max_bytes": 5242880,
+  "log_backup_count": 3,
   "displays": [
     {
       "type": "ssd1306_i2c",

@@ -9,7 +9,9 @@ Adafruit-PureIO==1.1.11
 certifi==2026.1.4
 charset-normalizer==3.4.4
 idna==3.11
+import-linter==2.11
 iniconfig==2.3.0
+jsonschema==4.26.0
 orjson==3.11.7
 packaging==26.0
 pigpio==1.78

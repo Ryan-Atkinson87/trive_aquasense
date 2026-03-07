@@ -26,7 +26,8 @@ class _FakeAdafruitDHT(types.ModuleType):
 
 sys.modules.setdefault("adafruit_dht", _FakeAdafruitDHT())
 
-from monitoring_service.inputs.sensors.factory import SensorFactory, SensorBundle
+from monitoring_service.inputs.sensors.factory import SensorFactory
+from monitoring_service.inputs.sensors.models import SensorBundle
 from monitoring_service.exceptions import InvalidSensorConfigError
 
 @pytest.fixture

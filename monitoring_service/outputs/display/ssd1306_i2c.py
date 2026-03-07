@@ -72,8 +72,6 @@ class SSD1306I2CDisplay(BaseDisplay):
             self._draw = ImageDraw.Draw(self._image)
             self._font = ImageFont.load_default()
 
-            self._line_height = 10
-
             self._header: str = config.get("_version_header", "Aquasense")
             self._messages: deque[str] = deque(maxlen=2)
 
@@ -141,11 +139,16 @@ class SSD1306I2CDisplay(BaseDisplay):
                 status.air_humidity,
             )
 
-            col_centers = [21, 64, 107]
+            col_width = self._width / 3
+            col_centers = [
+                int(col_width * 0.5),
+                int(col_width * 1.5),
+                int(col_width * 2.5),
+            ]
 
             label_y = 0
-            value_y = 10
-            time_y = 22
+            value_y = self._height // 3
+            time_y = self._height - self._height // 3
 
             labels = ["Water", "Air", "Humidity"]
             for label, cx in zip(labels, col_centers):
@@ -224,14 +227,16 @@ class SSD1306I2CDisplay(BaseDisplay):
         Row 2 (y=11): second-most-recent message (blank until two messages exist)
         Row 3 (y=22): most recent message
         """
+        row_step = self._height // 3
+
         self._draw.rectangle((0, 0, self._width, self._height), outline=0, fill=0)
         self._draw.text((0, 0), self._header, font=self._font, fill=255)
 
         msgs = list(self._messages)
         if len(msgs) == 2:
-            self._draw.text((0, 11), msgs[0], font=self._font, fill=255)
+            self._draw.text((0, row_step), msgs[0], font=self._font, fill=255)
         if msgs:
-            self._draw.text((0, 22), msgs[-1], font=self._font, fill=255)
+            self._draw.text((0, row_step * 2), msgs[-1], font=self._font, fill=255)
 
         self._oled.image(self._image)
         self._oled.show()

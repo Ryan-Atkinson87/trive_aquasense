@@ -6,7 +6,7 @@ from .config_exceptions import (
     ConfigFileNotFoundError,
 )
 from .factory_exceptions import FactoryError, UnknownSensorTypeError, InvalidSensorConfigError
-from .sensors import (
+from .sensor_exceptions import (
     SensorInitError,
     SensorReadError,
     SensorValueError,

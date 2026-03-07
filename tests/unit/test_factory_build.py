@@ -1,6 +1,7 @@
 import pytest
 
-from monitoring_service.inputs.sensors.factory import SensorFactory, SensorBundle
+from monitoring_service.inputs.sensors.factory import SensorFactory
+from monitoring_service.inputs.sensors.models import SensorBundle
 from monitoring_service.inputs.sensors.ds18b20 import DS18B20Sensor
 from monitoring_service.exceptions import (
     InvalidSensorConfigError,

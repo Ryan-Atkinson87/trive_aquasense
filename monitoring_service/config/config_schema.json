@@ -1,0 +1,85 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AquasenseConfig",
+  "description": "Schema for trive_aquasense config.json",
+  "type": "object",
+  "required": ["poll_period", "device_name", "mount_path", "sensors"],
+  "additionalProperties": true,
+  "properties": {
+    "poll_period": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Main polling interval in seconds"
+    },
+    "device_name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable device identifier sent to ThingsBoard"
+    },
+    "mount_path": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Filesystem mount point to monitor"
+    },
+    "log_level": {
+      "type": "string",
+      "enum": ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+      "description": "Logging verbosity level"
+    },
+    "log_max_bytes": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Maximum log file size in bytes before rotation"
+    },
+    "log_backup_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of rotated log files to retain"
+    },
+    "sensors": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Sensor configuration entries",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "interval"],
+        "additionalProperties": true,
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "interval": {
+            "type": "number",
+            "minimum": 1
+          }
+        }
+      }
+    },
+    "displays": {
+      "type": "array",
+      "description": "Display configuration entries",
+      "items": {
+        "type": "object",
+        "required": ["type", "show_startup", "system_screen"],
+        "additionalProperties": true,
+        "properties": {
+          "type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "show_startup": {
+            "type": "boolean"
+          },
+          "system_screen": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}

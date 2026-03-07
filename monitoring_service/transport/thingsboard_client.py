@@ -1,12 +1,12 @@
 """
-TBClientWrapper.py
+thingsboard_client.py
 
-Provides the TBClientWrapper class, a thin wrapper around the ThingsBoard MQTT
+Provides the ThingsboardClient class, a thin wrapper around the ThingsBoard MQTT
 client. It manages connection setup and exposes methods for sending telemetry
 and attribute data.
 
 Classes:
-    TBClientWrapper
+    ThingsboardClient
 """
 
 from tb_device_mqtt import TBDeviceMqttClient
@@ -23,7 +23,7 @@ def _safe_log(logger, level: str, message: str) -> None:
             pass
 
 
-class TBClientWrapper:
+class ThingsboardClient:
     """
     Wrap the ThingsBoard MQTT client and provide helper methods for connecting,
     sending telemetry and attributes, and disconnecting.

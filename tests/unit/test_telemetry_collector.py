@@ -1,8 +1,8 @@
 import pytest
 from typing import Any, Mapping
 
-from monitoring_service.telemetry import TelemetryCollector
-from monitoring_service.inputs.sensors.factory import SensorBundle
+from monitoring_service.inputs.telemetry import TelemetryCollector
+from monitoring_service.inputs.sensors.models import SensorBundle
 
 
 # ---------- Test doubles ----------
