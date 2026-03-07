@@ -8,7 +8,7 @@ validation logic.
 from abc import ABC
 from monitoring_service.inputs.sensors.base import BaseSensor
 from monitoring_service.inputs.sensors.constants import VALID_GPIO_PINS
-from monitoring_service.exceptions.sensors import SensorValueError
+from monitoring_service.exceptions.sensor_exceptions import SensorValueError
 
 class GPIOValueError(SensorValueError):
     """

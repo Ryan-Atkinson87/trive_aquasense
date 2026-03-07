@@ -14,7 +14,7 @@ import threading
 from typing import Tuple, Dict
 
 from monitoring_service.inputs.sensors.gpio_sensor import GPIOSensor, GPIOValueError
-from monitoring_service.exceptions.sensors import (
+from monitoring_service.exceptions.sensor_exceptions import (
     SensorInitError,
     SensorReadError,
     SensorStopError,
