@@ -9,7 +9,7 @@ level (broad).
 """
 
 import pytest
-from monitoring_service.exceptions.sensors import (
+from monitoring_service.exceptions.sensor_exceptions import (
     SensorInitError,
     SensorReadError,
     SensorValueError,

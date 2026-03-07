@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import patch
-from monitoring_service.attributes import AttributesCollector
+from monitoring_service.attributes.attributes import AttributesCollector
+from monitoring_service.__version__ import __version__
 
 
 @pytest.fixture
@@ -22,6 +23,7 @@ def test_as_dict_returns_expected_keys(collector):
     assert result["device_name"] == "TestDevice"
     assert result["ip_address"] == "192.168.0.100"
     assert result["mac_address"] == "00:11:22:33:44:55"
+    assert result["software_version"] == __version__
 
 
 def test_get_ip_address_returns_ip_string(collector):
@@ -32,6 +34,6 @@ def test_get_ip_address_returns_ip_string(collector):
 
 
 def test_get_mac_address_returns_mac_string(collector):
-    with patch("monitoring_service.attributes.uuid.getnode", return_value=0x001122334455):
+    with patch("monitoring_service.attributes.attributes.uuid.getnode", return_value=0x001122334455):
         mac = collector._get_mac_address()
         assert mac == "00:11:22:33:44:55"

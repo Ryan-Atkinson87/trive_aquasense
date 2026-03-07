@@ -4,7 +4,7 @@ import platform
 import pytest
 
 from monitoring_service.inputs.sensors import SensorFactory
-from monitoring_service.telemetry import TelemetryCollector
+from monitoring_service.inputs.telemetry import TelemetryCollector
 
 pytestmark = pytest.mark.skipif(
     not any(platform.machine().startswith(arch) for arch in ("arm", "aarch64")),

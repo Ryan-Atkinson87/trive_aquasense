@@ -1,11 +1,12 @@
 [Unit]
-Description=Trive Aquasense Service
+Description=Trive Aquasense
 After=network.target
 
 [Service]
 User=pi
-WorkingDirectory=/path/to/your/directory/trive_aquasense
-ExecStart=/path/to/your/directory/trive_aquasense/venv/bin/python -m monitoring_service.main
+WorkingDirectory=/opt/trive_aquasense
+ExecStart=/opt/trive_aquasense/venv/bin/python -m monitoring_service.main
+EnvironmentFile=/etc/trive_aquasense/.env
 Restart=always
 RestartSec=5
 

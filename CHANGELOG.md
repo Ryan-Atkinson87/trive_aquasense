@@ -7,6 +7,22 @@ Format: Keep a Changelog. Versioning: SemVer (MAJOR.MINOR.PATCH).
 - (Planned) SQLite queue for offline storage and retries.
 - (Planned) HTTP implementation for sending data to places other than ThingsBoard.
 
+## [v3.0.0] - 2026-03-07
+
+### Added
+- `software_version` attribute in `AttributesCollector.as_dict()` — reads from `__version__.py` and sends to ThingsBoard on startup (#151).
+- JSON schema validation for `config.json` via `config_schema.json` — structural errors are caught at load time with clear developer-facing messages (#71).
+- Architecture testing with `import-linter` — layer and independence contracts enforce the documented dependency direction at CI time; violations fail `lint-imports` (#130).
+- Log rotation parameters (`max_bytes`, `backup_count`) exposed in `config.json` under `logging` — previously hardcoded in `logging_setup.py` (#133).
+- OLED layout (column positions, row offsets) derived from per-display config dimensions rather than hardcoded constants (#133).
+- `docs/CONFIGURATION.md`, `docs/DEPLOYMENT.md`, `docs/SENSORS.md`, `docs/ARCHITECTURE.md` — README split into focused documents; `README.md` is now a short project overview with links (#145).
+
+### Changed
+- `SensorBundle` moved from `factory.py` to `inputs/sensors/models.py` — removes cross-layer coupling between `TelemetryCollector` and the factory module (#142).
+- Flat `monitoring_service/` layout reorganised into sub-packages (`config/`, `logging/`, `exceptions/` already existed) — improves navigability and aligns with module isolation goals (#119).
+- `exceptions/sensors.py` renamed to `exceptions/sensor_exceptions.py` — aligns with the `*_exceptions.py` naming convention used by `config_exceptions.py` and `factory_exceptions.py` (#150).
+- Production service file template (`trive_aquasense_example.service`) updated with production paths (`/opt/trive_aquasense`) and `EnvironmentFile=/etc/trive_aquasense/.env` directive.
+
 ## [v2.6.0] - 2026-03-02
 
 ### Added

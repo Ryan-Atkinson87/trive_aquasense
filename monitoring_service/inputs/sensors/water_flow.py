@@ -7,15 +7,6 @@ This driver measures flow rate by counting GPIO pulses from a hall-effect
 flow sensor and converting pulse frequency into litres per minute.
 """
 
-# Operational notes:
-# Make sure pigpiod is installed and running on the Pi:
-#   sudo apt update
-#   sudo apt install pigpio python3-pigpio
-#   sudo systemctl enable pigpiod
-#   sudo systemctl start pigpiod
-#
-#   sudo systemctl status pigpiod
-
 import pigpio
 import time
 import collections
@@ -23,7 +14,7 @@ import threading
 from typing import Tuple, Dict
 
 from monitoring_service.inputs.sensors.gpio_sensor import GPIOSensor, GPIOValueError
-from monitoring_service.exceptions.sensors import (
+from monitoring_service.exceptions.sensor_exceptions import (
     SensorInitError,
     SensorReadError,
     SensorStopError,
@@ -257,7 +248,7 @@ class WaterFlowSensor(GPIOSensor):
 
             return float(flow_instant), float(flow_smoothed)
 
-    # --- Public read() -----------------------------------------------------
+    # --- Public API ---------------------------------------------------------
 
     def read(self) -> Dict[str, float]:
         """

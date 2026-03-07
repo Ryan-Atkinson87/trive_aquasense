@@ -10,7 +10,7 @@ import logging
 from typing import Any
 
 from monitoring_service.inputs.sensors.factory import SensorFactory
-from monitoring_service.telemetry import TelemetryCollector
+from monitoring_service.inputs.telemetry import TelemetryCollector
 
 
 class InputManager:

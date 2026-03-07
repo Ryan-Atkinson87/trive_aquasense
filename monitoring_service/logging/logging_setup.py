@@ -10,7 +10,13 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 
-def setup_logging(log_dir="log", log_file_name="monitoring_service.log", log_level="INFO"):
+def setup_logging(
+    log_dir="log",
+    log_file_name="monitoring_service.log",
+    log_level="INFO",
+    max_bytes=5 * 1024 * 1024,
+    backup_count=3,
+):
     """
     Configure the root logger with console and rotating file handlers.
 
@@ -21,6 +27,8 @@ def setup_logging(log_dir="log", log_file_name="monitoring_service.log", log_lev
         log_dir (str): Directory where log files are stored.
         log_file_name (str): Name of the log file.
         log_level (str): Logging level name.
+        max_bytes (int): Maximum log file size in bytes before rotation.
+        backup_count (int): Number of rotated log files to retain.
 
     Returns:
         logging.Logger: The root logger instance.
@@ -30,7 +38,7 @@ def setup_logging(log_dir="log", log_file_name="monitoring_service.log", log_lev
 
     formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 
-    file_handler = RotatingFileHandler(log_file_path, maxBytes=5 * 1024 * 1024, backupCount=3)
+    file_handler = RotatingFileHandler(log_file_path, maxBytes=max_bytes, backupCount=backup_count)
     file_handler.setFormatter(formatter)
 
     console_handler = logging.StreamHandler()

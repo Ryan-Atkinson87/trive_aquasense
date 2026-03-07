@@ -3,13 +3,16 @@ adafruit-circuitpython-busdevice==5.2.15
 adafruit-circuitpython-connectionmanager==3.1.6
 adafruit-circuitpython-dht==4.0.10
 adafruit-circuitpython-requests==4.1.15
+adafruit-circuitpython-ssd1306==2.12.22
 adafruit-circuitpython-typing==1.12.3
 Adafruit-PlatformDetect==3.87.0
 Adafruit-PureIO==1.1.11
 certifi==2026.1.4
 charset-normalizer==3.4.4
 idna==3.11
+import-linter==2.11
 iniconfig==2.3.0
+jsonschema==4.26.0
 orjson==3.11.7
 packaging==26.0
 pigpio==1.78
@@ -20,7 +23,7 @@ pytest==9.0.2
 requests==2.32.5
 setuptools==82.0.0
 smbus3==0.5.5
-tb-mqtt-client==1.13.12
+tb-mqtt-client==1.13.13
 tb-paho-mqtt-client==2.1.2
 typing_extensions==4.15.0
 urllib3==2.6.3

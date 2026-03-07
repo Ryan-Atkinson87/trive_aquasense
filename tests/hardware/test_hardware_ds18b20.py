@@ -5,7 +5,7 @@ import glob
 import platform
 import pytest
 
-from monitoring_service.telemetry import TelemetryCollector
+from monitoring_service.inputs.telemetry import TelemetryCollector
 from monitoring_service.inputs.sensors import SensorFactory
 
 pytestmark = pytest.mark.skipif(
