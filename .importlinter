@@ -1,0 +1,86 @@
+[importlinter]
+root_packages =
+    monitoring_service
+
+
+[importlinter:contract:inputs-outputs-independence]
+name = Inputs and outputs are independent
+type = independence
+modules =
+    monitoring_service.inputs
+    monitoring_service.outputs
+
+
+[importlinter:contract:agent-not-import-main]
+name = Agent must not import from main
+type = forbidden
+source_modules =
+    monitoring_service.agent
+forbidden_modules =
+    monitoring_service.main
+
+
+[importlinter:contract:managers-below-agent]
+name = Managers must not import from agent or main
+type = forbidden
+source_modules =
+    monitoring_service.inputs.input_manager
+    monitoring_service.outputs.output_manager
+forbidden_modules =
+    monitoring_service.agent
+    monitoring_service.main
+
+
+[importlinter:contract:sensor-drivers-isolation]
+name = Sensor drivers must not import from orchestration or output layers
+type = forbidden
+source_modules =
+    monitoring_service.inputs.sensors.dht22
+    monitoring_service.inputs.sensors.ds18b20
+    monitoring_service.inputs.sensors.water_flow
+    monitoring_service.inputs.sensors.gpio_sensor
+forbidden_modules =
+    monitoring_service.inputs.input_manager
+    monitoring_service.telemetry
+    monitoring_service.agent
+    monitoring_service.main
+    monitoring_service.outputs
+    monitoring_service.TBClientWrapper
+    monitoring_service.config_loader
+    monitoring_service.attributes
+
+
+[importlinter:contract:display-drivers-isolation]
+name = Display drivers must not import from orchestration or input layers
+# TODO(#153): Add monitoring_service.outputs.status_model to forbidden_modules once
+# DisplayStatus is removed from all display drivers as part of issue #153.
+type = forbidden
+source_modules =
+    monitoring_service.outputs.display.logging_display
+    monitoring_service.outputs.display.ssd1306_i2c
+    monitoring_service.outputs.display.waveshare_147_st7789
+forbidden_modules =
+    monitoring_service.outputs.output_manager
+    monitoring_service.agent
+    monitoring_service.main
+    monitoring_service.inputs
+    monitoring_service.TBClientWrapper
+    monitoring_service.config_loader
+    monitoring_service.attributes
+    monitoring_service.telemetry
+
+
+[importlinter:contract:utilities-isolation]
+name = Config and utilities must not import from application modules
+type = forbidden
+source_modules =
+    monitoring_service.config_loader
+    monitoring_service.logging_setup
+    monitoring_service.attributes
+forbidden_modules =
+    monitoring_service.agent
+    monitoring_service.main
+    monitoring_service.inputs
+    monitoring_service.outputs
+    monitoring_service.TBClientWrapper
+    monitoring_service.telemetry
