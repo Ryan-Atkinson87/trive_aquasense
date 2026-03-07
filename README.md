@@ -4,281 +4,61 @@
 
 ## Overview
 
-**Trive Aquasense** is a lightweight Python application designed for Raspberry Pi devices to monitor aquarium
-telemetry (temperature, light levels, turbidity etc.) and send the data to a ThingsBoard instance using MQTT. This
-program is intended for production environments where reliable telemetry reporting and logging are crucial. It is
-structured for maintainability and extensibility, with a focus on clean code, unit testing, and systemd deployment.
+**Trive Aquasense** is a lightweight Python application for Raspberry Pi that reads aquarium telemetry from physical sensors and sends it to a ThingsBoard instance via MQTT. It also renders live telemetry to attached displays. Designed for production environments with reliable telemetry reporting, structured logging, and systemd deployment.
+
+**Target:** Raspberry Pi Zero WH, Raspberry Pi OS (Bookworm+), Python 3.11+
 
 ## Features
 
-- Sends aquarium telemetry to ThingsBoard
-- Sends static machine attributes (device name, IP, MAC address)
+- Sends aquarium telemetry (temperature, humidity, water flow) to ThingsBoard via MQTT
+- Sends static device attributes (device name, IP, MAC address)
+- Renders live telemetry to OLED and LCD displays
 - Local rotating log files for debugging and traceability
-- Unit tested with Pytest
-- Python 3.11+ support
 - Easily configurable via `.env` and `config.json`
-- Production-ready with systemd service example
+- Production-ready systemd service
+- Unit tested with Pytest
 
-## Sensor Interface Spec
-
-Full details in docs/SENSOR_INTERFACE.md
-
-## Project Structure
-
-```
-trive_aquasense/
-├── docs/
-│   └── SENSOR_INTERFACE.md
-├── monitoring_service/
-│   ├── exceptions/
-│   │   ├── __init__.py
-│   │   ├── config_exceptions.py
-│   │   ├── factory_exceptions.py
-│   │   └── sensors.py
-│   ├── inputs/
-│   │   ├── __init__.py
-│   │   ├── input_manager.py
-│   │   └── sensors/
-│   │       ├── __init__.py
-│   │       ├── base.py
-│   │       ├── constants.py
-│   │       ├── dht22.py
-│   │       ├── ds18b20.py
-│   │       ├── factory.py
-│   │       ├── gpio_sensor.py
-│   │       └── water_flow.py
-│   ├── outputs/
-│   │   ├── __init__.py
-│   │   ├── output_manager.py
-│   │   ├── status_model.py
-│   │   └── display/
-│   │       ├── __init__.py
-│   │       ├── base.py
-│   │       ├── factory.py
-│   │       ├── font_5x7.py
-│   │       ├── logging_display.py
-│   │       ├── ssd1306_i2c.py
-│   │       └── waveshare_147_st7789.py
-│   ├── __init__.py
-│   ├── __version__.py
-│   ├── agent.py
-│   ├── attributes.py
-│   ├── config_loader.py
-│   ├── logging_setup.py
-│   ├── main.py
-│   ├── TBClientWrapper.py
-│   └── telemetry.py
-├── tests/
-│   ├── hardware/
-│   │   ├── __init__.py
-│   │   ├── test_hardware_dht22.py
-│   │   ├── test_hardware_ds18b20.py
-│   │   ├── test_hardware_ssd1306_i2c.py
-│   │   ├── test_hardware_water_flow.py
-│   │   └── test_hardware_waveshare_147_display.py
-│   ├── not_implemented/
-│   │   ├── __init__.py
-│   │   ├── test_i2c_water_level.py
-│   │   └── test_hardware_i2c_water_level.py
-│   ├── unit/
-│   │   ├── __init__.py
-│   │   ├── conftest.py
-│   │   ├── test_abc_contracts.py
-│   │   ├── test_agent.py
-│   │   ├── test_attributes.py
-│   │   ├── test_config_loader.py
-│   │   ├── test_dht22_factory.py
-│   │   ├── test_dht22_sensor.py
-│   │   ├── test_display_factory.py
-│   │   ├── test_driver_kwargs_alignment.py
-│   │   ├── test_factory_build.py
-│   │   ├── test_factory_exceptions.py
-│   │   ├── test_gpio_sensor.py
-│   │   ├── test_input_manager.py
-│   │   ├── test_logging_display.py
-│   │   ├── test_logging_setup.py
-│   │   ├── test_output_manager.py
-│   │   ├── test_sensor_exceptions.py
-│   │   ├── test_ssd1306_i2c.py
-│   │   ├── test_status_model.py
-│   │   ├── test_tbclientwrapper.py
-│   │   ├── test_telemetry_collector.py
-│   │   ├── test_water_flow_sensor.py
-│   │   └── test_waveshare_147_st7789.py
-│   └── __init__.py
-├── .env
-├── CHANGELOG.md
-├── config.example.json
-├── trive_aquasense_example.service
-├── README.md
-└── requirements.txt
-```
-
-## Supported Telemetry
-
-| Sensor Type     | Telemetry Key       | Unit  | Description                           |
-|-----------------|---------------------|-------|---------------------------------------|
-| DS18B20         | `water_temperature` | °C    | Aquarium water temperature            |
-| DHT22           | `air_temperature`   | °C    | Ambient air temperature               |
-| DHT22           | `air_humidity`      | %RH   | Relative air humidity                 |
-| I2C Water Level | `water_level`       | mm    | Aquarium water level from top of tank |
-| Water Flow      | `water_flow`        | l/min | Water flow through filter return pipe |
-
-
-Each telemetry key is mapped from the raw driver output using the `keys` section in `config.json`.  
-This allows additional sensors to be added easily without modifying the core codebase.
-
-Future sensors (planned):
-- `turbidity` - water clarity sensor
-
-## Supported Displays
-
-| Display Type          | Output Type | Description                   |
-|-----------------------|-------------|-------------------------------|
-| SSD1306 I2C OLED      | I2C         | Small OLED Display            |
-| Waveshare 1.47" LCD   | SPI         | ST7789 172x320 colour display |
-
-## Getting Started
-
-### Prerequisites
-
-- Raspberry Pi OS (or any Linux-based OS)
-- Python 3.11+
-- ThingsBoard instance
-- MQTT device access token
-
-### Installation
-
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/Ryan-Atkinson87/trive_aquasense.git trive_aquasense
-   cd trive_aquasense
-   ```
-2. Set up the Python virtual environment:
-
-   ```bash
-   python3 -m venv venv
-   source venv/bin/activate
-   pip install -r requirements.txt
-   ```
-
-3. Configure your `.env` file and `config.json`:
-
-   ```bash
-   cp config.example.json config.json
-   cp .env.example .env
-   ```
-   Edit both files with your device-specific values (`ACCESS_TOKEN`, `THINGSBOARD_SERVER`, sensor IDs, etc.).
-
-### Running the Application
-
-Run directly:
+## Quick Start
 
 ```bash
+git clone https://github.com/Ryan-Atkinson87/trive_aquasense.git
+cd trive_aquasense
+python3 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+cp config.example.json config.json
+# Edit config.json and create .env with ACCESS_TOKEN and THINGSBOARD_SERVER
 python -m monitoring_service.main
 ```
 
-Or deploy with systemd for production:
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for full Pi setup, systemd installation, and production paths.
+
+## Documentation
+
+| Document | Contents |
+|----------|----------|
+| [docs/CONFIGURATION.md](docs/CONFIGURATION.md) | `config.json` and `.env` field reference |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Pi setup, systemd service, production paths |
+| [docs/SENSORS.md](docs/SENSORS.md) | Wiring diagrams and config examples per sensor |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Module architecture and data flow |
+| [docs/SENSOR_INTERFACE.md](docs/SENSOR_INTERFACE.md) | Sensor driver interface contract |
+
+## Testing
 
 ```bash
-sudo cp trive_aquasense.service /etc/systemd/system/
-sudo systemctl enable trive_aquasense.service
-sudo systemctl start trive_aquasense.service
+source venv/bin/activate && pytest tests/unit/
+source venv/bin/activate && pytest -m hardware tests/
 ```
 
-### Testing
+## Contributing
 
-```bash
-pytest tests/
-```
+Contributions are welcome — bug fixes, docs improvements, or new sensor support.
 
-### Wiring Diagrams
-
-#### DS18B20 Sensor
-| Pin  | Connection | Notes                                |
-|------|------------|--------------------------------------|
-| VCC  | 3.3V       | Power                                |
-| GND  | GND        | Ground                               |
-| DATA | GPIO4      | Needs 4.7kΩ pull-up resistor to 3.3V |
-
-- Ensure 1-Wire is enabled on the Raspberry Pi.
-
-#### DHT22 Sensor
-| Pin  | Connection | Notes                                  |
-|------|------------|----------------------------------------|
-| VCC  | 5V         | Power                                  |
-| GND  | GND        | Ground                                 |
-| DATA | GPIO17     | Requires 10kΩ pull-up resistor to 3.3V |
-
-- Ensure pin numbering in config.json matches wiring.
-
-#### I2C Water Level Sensor
-| Pin | Connection | Notes  |
-|-----|------------|--------|
-| VCC | 3.3V       | Power  |
-| GND | GND        | Ground |
-| SDA | GPIO3      | Data   |
-| SCL | GPIO5      | Clock  |
-
-#### Water Flow Sensor (Turbine Type)
-| Sensor Pin | Pi Connection | Notes      |
-|------------|---------------|------------|
-| VCC        | 5V            | Power      |
-| GND        | GND           | Ground     |
-| Signal     | GPIO23        | Signal Pin |
-
-Signal pin requires pull-up; pigpio sets internal pull-up automatically
-
-#### I2C SSD1306 OLED Display
-| Pin | Connection | Notes  |
-|-----|------------|--------|
-| VCC | 3.3V       | Power  |
-| GND | GND        | Ground |
-| SDA | GPIO3      | Data   |
-| SCL | GPIO5      | Clock  |
-
-#### Waveshare 1.47" LCD (ST7789)
-| Pin | Connection | Notes           |
-|-----|------------|-----------------|
-| VCC | 3.3V       | Power           |
-| GND | GND        | Ground          |
-| DIN | GPIO10     | SPI MOSI        |
-| CLK | GPIO11     | SPI SCLK        |
-| CS  | GPIO8      | SPI CE0         |
-| DC  | GPIO25     | Data/Command    |
-| RST | GPIO27     | Reset           |
-| BL  | GPIO18     | Backlight (PWM) |
+1. Fork the repository
+2. Create a branch: `git checkout -b feature/my-feature`
+3. Commit with a clear message and open a PR against `dev`
+4. All new code must include unit tests
+5. Check the [Project Board](https://github.com/Ryan-Atkinson87/trive_aquasense/projects) for ongoing work
 
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
-
----
-
-## How to Contribute
-
-Contributions are welcome — whether it's fixing a bug, improving docs, or adding new sensor support.
-
-1. **Fork** the repository on GitHub.
-2. **Create a new branch** for your feature or fix:
-   ```bash
-   git checkout -b feature/my-new-feature
-   ```
-3. **Commit your changes** with a clear message:
-   ```bash
-   git commit -m "Add support for XYZ sensor"
-   ```
-4. **Push to your fork** and open a Pull Request against the `dev` branch.
-
-### Contribution Guidelines
-- Follow the existing code style and structure.
-- All new code must include appropriate **unit tests**.
-- Use clear, descriptive commit messages.
-- Reference any related **issues** or **milestones** in your PR.
-- If adding a new feature or bugfix, label the issue appropriately (`feature`, `bug`, `v2.x.x`, etc.).
-- Check the [Project Board](https://github.com/Ryan-Atkinson87/trive_aquasense/projects) to see ongoing work and planned releases.
-
----
-
-Built with ❤️ to provide reliable system telemetry monitoring.
