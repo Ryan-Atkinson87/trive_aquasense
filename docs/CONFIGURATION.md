@@ -78,10 +78,12 @@ Additional driver-specific fields (e.g. `pin`, `path`, `sensor_id`, `bus`) vary 
 
 ---
 
-## Production config path
+## Production paths
 
-In production the service reads config from `/etc/trive_aquasense/config.json`. Set `CONFIG_PATH` in `.env` to override:
+In production the service reads config from `/etc/trive_aquasense/config.json`. Set `CONFIG_PATH` in `.env` to point to it:
 
 ```dotenv
 CONFIG_PATH=/etc/trive_aquasense/config.json
 ```
+
+The `.env` file itself lives at `/etc/trive_aquasense/.env` and is injected by systemd via `EnvironmentFile=` — it is never loaded by the application directly.

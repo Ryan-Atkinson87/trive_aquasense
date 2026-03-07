@@ -15,7 +15,7 @@ flowchart TD
     S2[DHT22]
     S3[WaterFlow]
     MA[MonitoringAgent]
-    TB[TBClientWrapper\nThingsBoard MQTT]
+    TB[ThingsboardClient\nThingsBoard MQTT]
     OM[OutputManager]
     D1[SSD1306 OLED]
     D2[Waveshare LCD]
@@ -52,7 +52,7 @@ Sensor.read()
   → range filtering
   → precision rounding
   → merged telemetry dict
-      → TBClientWrapper (ThingsBoard MQTT)
+      → ThingsboardClient (ThingsBoard MQTT)
       → OutputManager → Display drivers
 ```
 
@@ -62,15 +62,15 @@ Sensor.read()
 |--------|----------------|
 | `main.py` | Bootstrap only: loads config, constructs all components, wires dependencies, starts agent |
 | `agent.py` | `MonitoringAgent` — runs the main loop, delegates collection to `InputManager` and rendering to `OutputManager` |
-| `config_loader.py` | Merges `config.json` + `.env`, validates required fields. Only module that reads files |
+| `config/config_loader.py` | Merges `config.json` + `.env`, validates required fields. Only module that reads files |
 | `inputs/input_manager.py` | Wraps `SensorFactory` + `TelemetryCollector` behind a single `collect()` interface |
-| `inputs/sensors/` | One driver per sensor type. `BaseSensor` ABC, `read()` returns raw dict. Factory builds `SensorBundle` dataclasses |
-| `telemetry.py` | `TelemetryCollector` — per-sensor interval scheduling, key mapping, calibration, EMA smoothing, range filtering, precision rounding |
+| `inputs/sensors/` | One driver per sensor type. `BaseSensor` ABC, `read()` returns raw dict. Factory builds `SensorBundle` dataclasses (defined in `models.py`) |
+| `inputs/telemetry.py` | `TelemetryCollector` — per-sensor interval scheduling, key mapping, calibration, EMA smoothing, range filtering, precision rounding |
 | `outputs/output_manager.py` | Fans out snapshots to all displays, isolates failures, manages cleanup |
 | `outputs/display/` | Display drivers — `BaseDisplay` ABC, `render()` / `render_startup()` / `close()`. Receive pre-formatted content; must not assemble telemetry strings |
-| `TBClientWrapper.py` | ThingsBoard MQTT client abstraction |
-| `attributes.py` | Static device attributes (hostname, MAC, IP, device name) sent to ThingsBoard |
-| `logging_setup.py` | Central logger with `RotatingFileHandler`. Never imported ad-hoc into domain logic |
+| `transport/thingsboard_client.py` | `ThingsboardClient` — ThingsBoard MQTT client abstraction |
+| `attributes/attributes.py` | `AttributesCollector` — static device attributes (hostname, MAC, IP, device name, software version) sent to ThingsBoard |
+| `logging/logging_setup.py` | Central logger with `RotatingFileHandler`. Never imported ad-hoc into domain logic |
 | `exceptions/` | Domain exceptions: `config_exceptions.py`, `factory_exceptions.py`, `sensor_exceptions.py` |
 
 ## Design rules

@@ -102,17 +102,17 @@ A service template is provided at `trive_aquasense_example.service`.
 
 ### Install the service
 
+Copy the template (production paths are already set):
+
 ```bash
 sudo cp trive_aquasense_example.service /etc/systemd/system/trive_aquasense.service
 ```
 
-Edit the service file to set the correct paths:
+Place your `.env` at the path the service expects:
 
-```ini
-[Service]
-User=pi
-WorkingDirectory=/opt/trive_aquasense
-ExecStart=/opt/trive_aquasense/venv/bin/python -m monitoring_service.main
+```bash
+sudo mkdir -p /etc/trive_aquasense
+sudo cp .env /etc/trive_aquasense/.env
 ```
 
 Then enable and start:
@@ -134,11 +134,12 @@ journalctl -u trive_aquasense.service -f
 
 ## Production paths
 
-| Path                                | Purpose                              |
-|-------------------------------------|--------------------------------------|
-| `/opt/trive_aquasense/`             | Application root                     |
-| `/etc/trive_aquasense/config.json`  | Production config (set via `CONFIG_PATH` in `.env`) |
-| `/etc/systemd/system/trive_aquasense.service` | systemd unit file             |
+| Path                                          | Purpose                                                  |
+|-----------------------------------------------|----------------------------------------------------------|
+| `/opt/trive_aquasense/`                       | Application root                                         |
+| `/etc/trive_aquasense/config.json`            | Production config (set via `CONFIG_PATH` in `.env`)      |
+| `/etc/trive_aquasense/.env`                   | Environment variables — injected by systemd via `EnvironmentFile=` |
+| `/etc/systemd/system/trive_aquasense.service` | systemd unit file                                        |
 
 ---
 
