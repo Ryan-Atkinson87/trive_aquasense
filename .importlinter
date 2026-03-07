@@ -41,13 +41,13 @@ source_modules =
     monitoring_service.inputs.sensors.gpio_sensor
 forbidden_modules =
     monitoring_service.inputs.input_manager
-    monitoring_service.telemetry
+    monitoring_service.inputs.telemetry
     monitoring_service.agent
     monitoring_service.main
     monitoring_service.outputs
-    monitoring_service.TBClientWrapper
-    monitoring_service.config_loader
-    monitoring_service.attributes
+    monitoring_service.transport.thingsboard_client
+    monitoring_service.config.config_loader
+    monitoring_service.attributes.attributes
 
 
 [importlinter:contract:display-drivers-isolation]
@@ -64,23 +64,23 @@ forbidden_modules =
     monitoring_service.agent
     monitoring_service.main
     monitoring_service.inputs
-    monitoring_service.TBClientWrapper
-    monitoring_service.config_loader
-    monitoring_service.attributes
-    monitoring_service.telemetry
+    monitoring_service.transport.thingsboard_client
+    monitoring_service.config.config_loader
+    monitoring_service.attributes.attributes
+    monitoring_service.inputs.telemetry
 
 
 [importlinter:contract:utilities-isolation]
 name = Config and utilities must not import from application modules
 type = forbidden
 source_modules =
-    monitoring_service.config_loader
-    monitoring_service.logging_setup
-    monitoring_service.attributes
+    monitoring_service.config.config_loader
+    monitoring_service.logging.logging_setup
+    monitoring_service.attributes.attributes
 forbidden_modules =
     monitoring_service.agent
     monitoring_service.main
     monitoring_service.inputs
     monitoring_service.outputs
-    monitoring_service.TBClientWrapper
-    monitoring_service.telemetry
+    monitoring_service.transport.thingsboard_client
+    monitoring_service.inputs.telemetry

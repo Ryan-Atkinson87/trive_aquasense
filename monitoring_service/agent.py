@@ -19,8 +19,8 @@ from datetime import datetime
 
 from monitoring_service.inputs.input_manager import InputManager
 from monitoring_service.outputs.output_manager import OutputManager
-from monitoring_service.attributes import AttributesCollector
-from monitoring_service.TBClientWrapper import TBClientWrapper
+from monitoring_service.attributes.attributes import AttributesCollector
+from monitoring_service.transport.thingsboard_client import ThingsboardClient
 
 
 class MonitoringAgent:
@@ -42,7 +42,7 @@ class MonitoringAgent:
         logger: logging.Logger,
         input_manager: InputManager,
         attributes_collector: AttributesCollector,
-        tb_client: TBClientWrapper,
+        tb_client: ThingsboardClient,
         output_manager: OutputManager,
         poll_period: int = 60,
     ) -> None:

@@ -1,7 +1,7 @@
 import os
 import logging
 import pytest
-from monitoring_service.logging_setup import setup_logging
+from monitoring_service.logging.logging_setup import setup_logging
 
 
 @pytest.fixture(autouse=True)

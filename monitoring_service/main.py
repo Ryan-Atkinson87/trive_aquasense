@@ -8,13 +8,13 @@ client, and starts the monitoring agent.
 
 import logging
 from monitoring_service.__version__ import __version__
-from monitoring_service.config_loader import ConfigLoader
-from monitoring_service.logging_setup import setup_logging
+from monitoring_service.config.config_loader import ConfigLoader
+from monitoring_service.logging.logging_setup import setup_logging
 from monitoring_service.inputs.input_manager import InputManager
 from monitoring_service.outputs.output_manager import OutputManager
 from monitoring_service.outputs.display.factory import build_displays
-from monitoring_service.attributes import AttributesCollector
-from monitoring_service.TBClientWrapper import TBClientWrapper
+from monitoring_service.attributes.attributes import AttributesCollector
+from monitoring_service.transport.thingsboard_client import ThingsboardClient
 from monitoring_service.agent import MonitoringAgent
 
 
@@ -65,7 +65,7 @@ def main():
     device_name = config["device_name"]
 
     attributes_collector = AttributesCollector(device_name, logger)
-    client = TBClientWrapper(server, token, logger)
+    client = ThingsboardClient(server, token, logger)
 
     agent = MonitoringAgent(
         logger=logger,
