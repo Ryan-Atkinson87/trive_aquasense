@@ -47,3 +47,28 @@ def test_collect_returns_empty_when_no_bundles():
         result = manager.collect()
 
     assert result == {}
+
+
+def test_prewarm_reads_each_sensor_once():
+    logger = make_logger()
+    mock_bundle = MagicMock()
+
+    with patch("monitoring_service.inputs.input_manager.SensorFactory") as MockFactory, \
+         patch("monitoring_service.inputs.input_manager.TelemetryCollector"):
+        MockFactory.return_value.build_all.return_value = [mock_bundle]
+        InputManager(sensors_config=[{"type": "dht22", "gpio": 17}], logger=logger)
+
+    mock_bundle.driver.read.assert_called_once()
+
+
+def test_prewarm_silently_swallows_read_failure():
+    logger = make_logger()
+    mock_bundle = MagicMock()
+    mock_bundle.driver.read.side_effect = RuntimeError("checksum error")
+
+    with patch("monitoring_service.inputs.input_manager.SensorFactory") as MockFactory, \
+         patch("monitoring_service.inputs.input_manager.TelemetryCollector"):
+        MockFactory.return_value.build_all.return_value = [mock_bundle]
+        InputManager(sensors_config=[{"type": "dht22", "gpio": 17}], logger=logger)
+
+    logger.warning.assert_not_called()
