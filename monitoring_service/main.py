@@ -12,7 +12,7 @@ from monitoring_service.config.config_loader import ConfigLoader
 from monitoring_service.logging.logging_setup import setup_logging
 from monitoring_service.inputs.input_manager import InputManager
 from monitoring_service.outputs.output_manager import OutputManager
-from monitoring_service.outputs.display.factory import build_displays
+from monitoring_service.outputs.display.factory import DisplayFactory
 from monitoring_service.attributes.attributes import AttributesCollector
 from monitoring_service.transport.thingsboard_client import ThingsboardClient
 from monitoring_service.agent import MonitoringAgent
@@ -20,7 +20,7 @@ from monitoring_service.agent import MonitoringAgent
 
 def main():
     """
-    Initialize and start the monitoring service.
+    Initialise and start the monitoring service.
 
     This function loads configuration, configures logging, builds the input
     and output managers, wires the ThingsBoard client, and starts the
@@ -51,12 +51,12 @@ def main():
         logger=logger,
     )
 
-    displays = build_displays(
+    display_bundles = DisplayFactory().build_all(
         displays_config=config.get("displays", []),
         logger=logger,
         version=__version__,
     )
-    output_manager = OutputManager(outputs=displays, logger=logger)
+    output_manager = OutputManager(outputs=display_bundles, logger=logger)
     output_manager.render_startup(f"Aquasense v{__version__}")
 
     server = config["server"]

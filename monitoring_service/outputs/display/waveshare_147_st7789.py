@@ -15,7 +15,7 @@ import RPi.GPIO as GPIO
 
 from monitoring_service.outputs.display.base import BaseDisplay
 from monitoring_service.outputs.display.font_5x7 import FONT_5X7
-from monitoring_service.outputs.status_model import DisplayStatus
+from monitoring_service.outputs.display.models import DisplayContent
 
 
 class Waveshare147ST7789Display(BaseDisplay):
@@ -221,32 +221,23 @@ class Waveshare147ST7789Display(BaseDisplay):
     # Rendering
     # ------------------------------------------------------------------
 
-    def render(self, snapshot: Mapping[str, Any]) -> None:
+    def render(self, content: DisplayContent) -> None:
+        """
+        Render pre-formatted content lines to the display, evenly spaced
+        within a 10% vertical margin on each side.
+
+        Args:
+            content: Pre-formatted content payload from OutputManager.
+        """
         if not self._should_render():
             return
 
         try:
-            status = DisplayStatus.from_snapshot(snapshot)
-
             self._clear_framebuffer(self._rgb565(0, 0, 0))
 
             white = self._rgb565(255, 255, 255)
             scale = self.FONT_SCALE
-
-            # Build lines to render
-            lines: list[str] = [status.device_name]
-
-            if status.water_temperature is not None:
-                lines.append(f"WATER:{status.water_temperature:.1f}C")
-
-            if status.air_temperature is not None:
-                lines.append(f"AIR:{status.air_temperature:.1f}C")
-
-            if status.air_humidity is not None:
-                lines.append(f"HUMID:{status.air_humidity:.1f}%")
-
-            if status.water_flow is not None:
-                lines.append(f"FLOW:{status.water_flow:.1f}L/M")
+            lines = content.lines
 
             # 10% margins on each side
             y_margin = int(self.HEIGHT * 0.10)
