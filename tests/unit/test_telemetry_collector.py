@@ -18,6 +18,20 @@ class FakeDriver:
             raise self._raise
         return dict(self._payload)
 
+
+class FlakyDriver:
+    """Driver that raises on the first fail_times calls, then succeeds."""
+    def __init__(self, fail_times: int, payload: Mapping[str, Any]):
+        self._fail_times = fail_times
+        self._call_count = 0
+        self._payload = payload
+
+    def read(self) -> Mapping[str, Any]:
+        self._call_count += 1
+        if self._call_count <= self._fail_times:
+            raise RuntimeError("transient failure")
+        return dict(self._payload)
+
 # ---------- Fixtures ----------
 
 @pytest.fixture
@@ -32,6 +46,8 @@ def make_bundle():
         precision: dict[str, int] = None,
         interval: int | None = None,
         raise_exc: Exception | None = None,
+        max_retries: int = 0,
+        retry_base_delay: float = 0.0,
     ) -> SensorBundle:
         driver = FakeDriver(payload=driver_payload, raise_exc=raise_exc)
         return SensorBundle(
@@ -42,6 +58,8 @@ def make_bundle():
             smoothing=smoothing or {},
             precision=precision or {},
             interval=interval,
+            max_retries=max_retries,
+            retry_base_delay=retry_base_delay,
         )
     return _make
 
@@ -309,3 +327,86 @@ def test_precision_no_config_passes_through_unmodified(make_bundle):
     c = TelemetryCollector(bundles=[b])
     out = c.as_dict()
     assert out["water_flow"] == pytest.approx(raw)
+
+
+# ---------- Retry / back-off ----------
+
+def test_retry_succeeds_after_transient_failure(monkeypatch):
+    monkeypatch.setattr("time.sleep", lambda _: None)
+    driver = FlakyDriver(fail_times=2, payload={"t": 99.0})
+    bundle = SensorBundle(
+        driver=driver,
+        keys={"t": "water_temperature"},
+        calibration={},
+        ranges={},
+        smoothing={},
+        precision={},
+        interval=None,
+        max_retries=3,
+        retry_base_delay=0.1,
+    )
+    c = TelemetryCollector(bundles=[bundle])
+    out = c.as_dict()
+    assert out == {"water_temperature": 99.0}
+    assert driver._call_count == 3
+
+
+def test_retry_returns_none_when_all_attempts_fail(monkeypatch):
+    monkeypatch.setattr("time.sleep", lambda _: None)
+    driver = FlakyDriver(fail_times=99, payload={"t": 99.0})
+    bundle = SensorBundle(
+        driver=driver,
+        keys={"t": "water_temperature"},
+        calibration={},
+        ranges={},
+        smoothing={},
+        precision={},
+        interval=None,
+        max_retries=2,
+        retry_base_delay=0.1,
+    )
+    c = TelemetryCollector(bundles=[bundle])
+    out = c.as_dict()
+    assert out == {}
+    assert driver._call_count == 3  # 1 initial + 2 retries
+
+
+def test_retry_sleeps_with_exponential_backoff(monkeypatch):
+    sleep_calls = []
+    monkeypatch.setattr("time.sleep", lambda d: sleep_calls.append(d))
+    driver = FlakyDriver(fail_times=99, payload={})
+    bundle = SensorBundle(
+        driver=driver,
+        keys={},
+        calibration={},
+        ranges={},
+        smoothing={},
+        precision={},
+        interval=None,
+        max_retries=3,
+        retry_base_delay=1.0,
+    )
+    c = TelemetryCollector(bundles=[bundle])
+    c.as_dict()
+    assert sleep_calls == [1.0, 2.0, 4.0]
+
+
+def test_no_retry_when_max_retries_is_zero(monkeypatch):
+    sleep_calls = []
+    monkeypatch.setattr("time.sleep", lambda d: sleep_calls.append(d))
+    driver = FlakyDriver(fail_times=99, payload={})
+    bundle = SensorBundle(
+        driver=driver,
+        keys={},
+        calibration={},
+        ranges={},
+        smoothing={},
+        precision={},
+        interval=None,
+        max_retries=0,
+        retry_base_delay=0.5,
+    )
+    c = TelemetryCollector(bundles=[bundle])
+    c.as_dict()
+    assert sleep_calls == []
+    assert driver._call_count == 1

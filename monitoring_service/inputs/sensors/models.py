@@ -29,3 +29,5 @@ class SensorBundle:
     interval: Optional[int] = None
     full_id: Optional[str] = None
     precision: dict[str, int] = field(default_factory=dict)
+    max_retries: int = 0
+    retry_base_delay: float = 0.5

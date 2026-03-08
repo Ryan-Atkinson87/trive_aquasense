@@ -144,6 +144,14 @@ class SensorFactory:
         if interval is not None and (not isinstance(interval, int) or interval < 1):
             raise InvalidSensorConfigError("'interval' must be an integer ≥ 1 if provided")
 
+        max_retries = sensor_config.get("max_retries", 0)
+        if not isinstance(max_retries, int) or max_retries < 0:
+            raise InvalidSensorConfigError("'max_retries' must be an integer ≥ 0 if provided")
+
+        retry_base_delay = sensor_config.get("retry_base_delay", 0.5)
+        if not isinstance(retry_base_delay, (int, float)) or retry_base_delay <= 0:
+            raise InvalidSensorConfigError("'retry_base_delay' must be a positive number if provided")
+
         driver_class = self._registry.get(sensor_type)
         if driver_class is None:
             raise UnknownSensorTypeError(
@@ -232,6 +240,8 @@ class SensorFactory:
             precision=precision_map,
             interval=interval,
             full_id=full_id,
+            max_retries=max_retries,
+            retry_base_delay=float(retry_base_delay),
         )
 
     def build_all(self, config) -> list[SensorBundle]:
