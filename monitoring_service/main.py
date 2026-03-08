@@ -35,7 +35,7 @@ def main():
     config = ConfigLoader(logger=bootstrap_logger).as_dict()
 
     logger = setup_logging(
-        log_dir="log",
+        log_dir="/var/log/trive_aquasense",
         log_file_name="monitoring_service.log",
         log_level=config["log_level"],
         max_bytes=config["log_max_bytes"],
