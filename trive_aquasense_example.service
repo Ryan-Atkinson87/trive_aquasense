@@ -5,10 +5,12 @@ After=network.target
 [Service]
 User=pi
 WorkingDirectory=/opt/trive_aquasense
-ExecStart=/opt/trive_aquasense/venv/bin/python -m monitoring_service.main
 EnvironmentFile=/etc/trive_aquasense/.env
+ExecStartPre=/bin/bash /opt/trive_aquasense/pre_start_check.sh
+ExecStart=/opt/trive_aquasense/venv/bin/python -m monitoring_service.main
 Restart=always
 RestartSec=5
+LogsDirectory=trive_aquasense
 
 [Install]
 WantedBy=multi-user.target

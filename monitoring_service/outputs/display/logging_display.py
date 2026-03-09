@@ -8,14 +8,16 @@ import logging
 from typing import Mapping, Any
 
 from monitoring_service.outputs.display.base import BaseDisplay
-from monitoring_service.outputs.status_model import DisplayStatus
+from monitoring_service.outputs.display.models import DisplayContent
 
 
 class LoggingDisplay(BaseDisplay):
     """
-    Display implementation that logs selected telemetry values instead of
+    Display implementation that logs pre-formatted content lines instead of
     rendering them to physical hardware.
     """
+
+    # --- Properties ---
 
     def __init__(self, config: Mapping[str, Any]) -> None:
         """
@@ -27,31 +29,28 @@ class LoggingDisplay(BaseDisplay):
         super().__init__(config)
         self._logger = logging.getLogger("display.logging")
 
-    def render(self, snapshot: Mapping[str, Any]) -> None:
+    # --- Public API ---
+
+    def render(self, content: DisplayContent) -> None:
         """
-        Log selected telemetry values from a snapshot.
+        Log pre-formatted content lines.
 
         Args:
-            snapshot: Telemetry snapshot containing ts, device_name, and values.
+            content: Pre-formatted content payload from OutputManager.
         """
         if not self._should_render():
             return
 
         try:
-            status = DisplayStatus.from_snapshot(snapshot)
-
             self._logger.info(
-                "Display update | water_temperature=%s | air_temperature=%s"
-                " | air_humidity=%s | water_flow=%s",
-                status.water_temperature,
-                status.air_temperature,
-                status.air_humidity,
-                status.water_flow,
+                "Display update | %s | ts=%s",
+                " | ".join(content.lines),
+                content.timestamp_str,
             )
 
         except Exception:
             self._logger.warning(
-                "Failed to render snapshot on logging display",
+                "Failed to render content on logging display",
                 exc_info=True,
             )
 

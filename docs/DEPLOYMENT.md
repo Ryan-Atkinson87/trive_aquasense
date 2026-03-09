@@ -108,12 +108,17 @@ Copy the template (production paths are already set):
 sudo cp trive_aquasense_example.service /etc/systemd/system/trive_aquasense.service
 ```
 
-Place your `.env` at the path the service expects:
+Place your config and `.env` at the paths the service expects:
 
 ```bash
 sudo mkdir -p /etc/trive_aquasense
+sudo cp config.example.json /etc/trive_aquasense/config.json
 sudo cp .env /etc/trive_aquasense/.env
 ```
+
+Edit `/etc/trive_aquasense/config.json` with your sensor IDs, display settings, and operational parameters. See [CONFIGURATION.md](CONFIGURATION.md) for a full field reference.
+
+> **Pre-start checks:** The service runs `pre_start_check.sh` before starting. It verifies the venv exists, `config.json` is present at `/etc/trive_aquasense/config.json`, and `ACCESS_TOKEN`/`THINGSBOARD_SERVER` are set. If any check fails, the service will not start and the failure reason is written to the journal (`journalctl -u trive_aquasense.service`). The script is included in the repository and deployed automatically when you clone to `/opt/trive_aquasense`.
 
 Then enable and start:
 
@@ -136,10 +141,11 @@ journalctl -u trive_aquasense.service -f
 
 | Path                                          | Purpose                                                  |
 |-----------------------------------------------|----------------------------------------------------------|
-| `/opt/trive_aquasense/`                       | Application root                                         |
-| `/etc/trive_aquasense/config.json`            | Production config (set via `CONFIG_PATH` in `.env`)      |
-| `/etc/trive_aquasense/.env`                   | Environment variables — injected by systemd via `EnvironmentFile=` |
-| `/etc/systemd/system/trive_aquasense.service` | systemd unit file                                        |
+| `/opt/trive_aquasense/`                                | Application root                                                    |
+| `/opt/trive_aquasense/pre_start_check.sh`             | Pre-start validation script (deployed with the repo)                |
+| `/etc/trive_aquasense/config.json`                    | Production config (set via `CONFIG_PATH` in `.env`)                 |
+| `/etc/trive_aquasense/.env`                           | Environment variables — injected by systemd via `EnvironmentFile=`  |
+| `/etc/systemd/system/trive_aquasense.service`         | systemd unit file                                                   |
 
 ---
 

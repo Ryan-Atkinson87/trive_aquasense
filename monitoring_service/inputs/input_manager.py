@@ -36,6 +36,22 @@ class InputManager:
             self._logger.warning(
                 "No sensors configured/built. Telemetry will be empty."
             )
+        else:
+            self._prewarm()
+
+    def _prewarm(self) -> None:
+        """
+        Perform a single silent read of every sensor before the main loop.
+
+        Some sensors (e.g. DHT22) reliably fail their first read due to
+        hardware warm-up characteristics. Absorbing that failure here prevents
+        it from appearing as a gap in the first telemetry snapshot.
+        """
+        for bundle in self._bundles:
+            try:
+                bundle.driver.read()
+            except Exception:
+                pass
 
     def collect(self) -> dict[str, Any]:
         """

@@ -52,8 +52,6 @@ forbidden_modules =
 
 [importlinter:contract:display-drivers-isolation]
 name = Display drivers must not import from orchestration or input layers
-# TODO(#153): Add monitoring_service.outputs.status_model to forbidden_modules once
-# DisplayStatus is removed from all display drivers as part of issue #153.
 type = forbidden
 source_modules =
     monitoring_service.outputs.display.logging_display
@@ -61,6 +59,7 @@ source_modules =
     monitoring_service.outputs.display.waveshare_147_st7789
 forbidden_modules =
     monitoring_service.outputs.output_manager
+    monitoring_service.outputs.status_model
     monitoring_service.agent
     monitoring_service.main
     monitoring_service.inputs

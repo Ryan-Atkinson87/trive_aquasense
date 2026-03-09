@@ -13,6 +13,7 @@ mock_spidev = sys.modules["spidev"]
 from monitoring_service.outputs.display.waveshare_147_st7789 import (
     Waveshare147ST7789Display,
 )
+from monitoring_service.outputs.display.models import DisplayContent
 
 
 @pytest.fixture()
@@ -48,16 +49,10 @@ def display(valid_config):
 
 @pytest.fixture()
 def full_snapshot():
-    return {
-        "ts": time.time(),
-        "device_name": "test_device",
-        "values": {
-            "water_temperature": 24.5,
-            "air_temperature": 19.2,
-            "air_humidity": 45.0,
-            "water_flow": 1.5,
-        },
-    }
+    return DisplayContent(
+        lines=["test_device", "WATER:24.5C", "AIR:19.2C", "HUMID:45.0%", "FLOW:1.5L/M"],
+        timestamp_str="12:34 08/03/2026",
+    )
 
 
 # ------------------------------------------------------------------
@@ -201,25 +196,15 @@ class TestRender:
         # Framebuffer should be written via _write_data -> spi.writebytes
         assert spi.writebytes.call_count > 0
 
-    def test_render_with_missing_values(self, display):
-        snapshot = {
-            "ts": time.time(),
-            "device_name": "test_device",
-            "values": {},
-        }
-        display.render(snapshot)
+    def test_render_with_empty_lines(self, display):
+        content = DisplayContent(lines=[], timestamp_str="")
+        display.render(content)
         spi = mock_spidev.SpiDev.return_value
         assert spi.writebytes.call_count > 0
 
-    def test_render_with_partial_values(self, display):
-        snapshot = {
-            "ts": time.time(),
-            "device_name": "test_device",
-            "values": {
-                "water_temperature": 22.0,
-            },
-        }
-        display.render(snapshot)
+    def test_render_with_partial_lines(self, display):
+        content = DisplayContent(lines=["test_device", "WATER:22.0C"], timestamp_str="")
+        display.render(content)
         spi = mock_spidev.SpiDev.return_value
         assert spi.writebytes.call_count > 0
 
@@ -229,21 +214,16 @@ class TestRender:
         spi = mock_spidev.SpiDev.return_value
         spi.reset_mock()
 
-        snapshot = {
-            "ts": time.time(),
-            "device_name": "test_device",
-            "values": {"water_temperature": 22.0},
-        }
-        display.render(snapshot)  # First render should go through
+        content = DisplayContent(lines=["test_device", "WATER:22.0C"], timestamp_str="")
+        display.render(content)  # First render should go through
         call_count_after_first = spi.writebytes.call_count
 
-        display.render(snapshot)  # Second render should be skipped
+        display.render(content)  # Second render should be skipped
         assert spi.writebytes.call_count == call_count_after_first
 
     def test_render_exception_does_not_propagate(self, display):
-        bad_snapshot = {"not": "valid"}
-        # Should not raise — the driver catches and logs
-        display.render(bad_snapshot)
+        # Passing a non-DisplayContent object to verify the driver's exception guard
+        display.render(object())  # type: ignore[arg-type]
 
 
 # ------------------------------------------------------------------
