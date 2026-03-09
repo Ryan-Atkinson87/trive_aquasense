@@ -5,8 +5,9 @@ Defines the BaseDisplay abstract class, which all display drivers must implement
 """
 
 from abc import ABC, abstractmethod
-from typing import Mapping, Any
 import time
+
+from monitoring_service.outputs.display.models import DisplayContent
 
 
 class BaseDisplay(ABC):
@@ -18,7 +19,7 @@ class BaseDisplay(ABC):
     collection.
     """
 
-    def __init__(self, config: Mapping[str, Any]) -> None:
+    def __init__(self, config: dict) -> None:
         """
         Initialise the display with its configuration.
 
@@ -60,12 +61,12 @@ class BaseDisplay(ABC):
         return False
 
     @abstractmethod
-    def render(self, snapshot: Mapping[str, Any]) -> None:
+    def render(self, content: DisplayContent) -> None:
         """
-        Render a telemetry snapshot to the display.
+        Render pre-formatted display content to the output device.
 
         Args:
-            snapshot: Telemetry snapshot containing ts, device_name, and values.
+            content: Pre-formatted content payload assembled by OutputManager.
         """
 
     @abstractmethod

@@ -7,6 +7,17 @@ Format: Keep a Changelog. Versioning: SemVer (MAJOR.MINOR.PATCH).
 - (Planned) SQLite queue for offline storage and retries.
 - (Planned) HTTP implementation for sending data to places other than ThingsBoard.
 
+## [v3.1.0] - 2026-03-09
+
+### Added
+- Retry and exponential back-off logic for sensor reads and MQTT publishes — configurable per sensor via `max_retries` and `retry_base_delay` in `config.json` (#120).
+- Pre-start validation script (`pre_start_check.sh`) — runs via `ExecStartPre` in the systemd service. Verifies venv, `config.json`, and required env vars before the service starts; failures are written to the journal (#124).
+- Pre-warm sensor reads on startup to absorb the DHT22 first-read failure before the main loop begins (#138).
+
+### Changed
+- Log output moved to `/var/log/trive_aquasense` — managed by systemd `LogsDirectory=` directive (#121).
+- Display subsystem refactored to factory pattern with full driver isolation (#153).
+
 ## [v3.0.0] - 2026-03-07
 
 ### Added

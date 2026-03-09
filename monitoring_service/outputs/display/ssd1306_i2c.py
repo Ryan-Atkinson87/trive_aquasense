@@ -1,24 +1,22 @@
 """
 ssd1306_i2c.py
 
-Provides an SSD1306 I2C OLED display implementation for rendering telemetry
-snapshots using the Adafruit SSD1306 driver and PIL for text layout.
+Provides an SSD1306 I2C OLED display implementation for rendering pre-formatted
+content using the Adafruit SSD1306 driver and PIL for text layout.
 
-Normal mode (system_screen=False) renders a fixed 3-row telemetry layout:
-  - Row 1: Metric labels (Water | Air | Humidity)
-  - Row 2: Metric values with units
-  - Row 3: Timestamp of last telemetry update
+Normal mode (system_screen=False) renders a 2-row layout:
+  - Row 1: Content lines in up to 3 columns (value strings from OutputManager)
+  - Row 2: Timestamp of last telemetry update
 
-System-screen mode (system_screen=True) renders a persistent status layout:
+System-screen mode (system_screen=True): render() is a no-op; all updates
+arrive via render_startup(), which maintains a scrolling 3-row message log:
   - Row 1: Version header (e.g. "Aquasense v2.6.0") — fixed
   - Row 2: Second-most-recent system message
   - Row 3: Most recent system message
-In this mode render() is a no-op; all updates arrive via render_startup().
 """
 
 import logging
 from collections import deque
-from datetime import datetime
 from typing import Mapping, Any
 
 from PIL import Image, ImageDraw, ImageFont
@@ -28,16 +26,19 @@ import busio
 import adafruit_ssd1306
 
 from monitoring_service.outputs.display.base import BaseDisplay
-from monitoring_service.outputs.status_model import DisplayStatus
+from monitoring_service.outputs.display.models import DisplayContent
 
 
 class SSD1306I2CDisplay(BaseDisplay):
     """
     SSD1306-based I2C OLED display implementation.
 
-    This class is responsible only for rendering already-collected telemetry
-    snapshots. It does not perform any sensor reads or timekeeping itself.
+    This class is responsible only for rendering already-assembled content
+    payloads. It does not perform any sensor reads, content assembly, or
+    timekeeping itself.
     """
+
+    # --- Properties ---
 
     def __init__(self, config: Mapping[str, Any]) -> None:
         """
@@ -89,6 +90,8 @@ class SSD1306I2CDisplay(BaseDisplay):
             )
             raise
 
+    # --- Internals ---
+
     def _draw_centered_text(self, text: str, center_x: int, y: int) -> None:
         """
         Draw text horizontally centered around a given x coordinate.
@@ -103,24 +106,42 @@ class SSD1306I2CDisplay(BaseDisplay):
         x = int(center_x - text_width / 2)
         self._draw.text((x, y), text, font=self._font, fill=255)
 
-    def render(self, snapshot: Mapping[str, Any]) -> None:
+    def _draw_system_screen(self) -> None:
         """
-        Render a telemetry snapshot to the OLED display.
+        Draw the 3-row system-screen layout and push it to the hardware.
 
-        Expected snapshot structure:
-            {
-                "ts": int | float | datetime,
-                "values": {
-                    "water_temperature": float,
-                    "air_temperature": float,
-                    "air_humidity": float
-                }
-            }
+        Row 1 (y=0):  version header (fixed)
+        Row 2 (y=11): second-most-recent message (blank until two messages exist)
+        Row 3 (y=22): most recent message
+        """
+        row_step = self._height // 3
 
+        self._draw.rectangle((0, 0, self._width, self._height), outline=0, fill=0)
+        self._draw.text((0, 0), self._header, font=self._font, fill=255)
+
+        msgs = list(self._messages)
+        if len(msgs) == 2:
+            self._draw.text((0, row_step), msgs[0], font=self._font, fill=255)
+        if msgs:
+            self._draw.text((0, row_step * 2), msgs[-1], font=self._font, fill=255)
+
+        self._oled.image(self._image)
+        self._oled.show()
+
+    # --- Public API ---
+
+    def render(self, content: DisplayContent) -> None:
+        """
+        Render pre-formatted display content to the OLED.
+
+        Renders up to three content lines in a column layout on the upper
+        portion of the display, with the timestamp on the lower row.
         Rendering is skipped if the configured refresh period has not elapsed.
         In system-screen mode this method is a no-op.
-        """
 
+        Args:
+            content: Pre-formatted content payload from OutputManager.
+        """
         if self._system_screen:
             return
 
@@ -128,16 +149,9 @@ class SSD1306I2CDisplay(BaseDisplay):
             return
 
         try:
-            status = DisplayStatus.from_snapshot(snapshot)
-
             self._draw.rectangle((0, 0, self._width, self._height), outline=0, fill=0)
 
-            self._logger.info(
-                "OLED update | water_temperature=%s | air_temperature=%s | air_humidity=%s",
-                status.water_temperature,
-                status.air_temperature,
-                status.air_humidity,
-            )
+            self._logger.info("OLED update | %s | ts=%s", " | ".join(content.lines), content.timestamp_str)
 
             col_width = self._width / 3
             col_centers = [
@@ -146,40 +160,24 @@ class SSD1306I2CDisplay(BaseDisplay):
                 int(col_width * 2.5),
             ]
 
-            label_y = 0
             value_y = self._height // 3
             time_y = self._height - self._height // 3
 
-            labels = ["Water", "Air", "Humidity"]
-            for label, cx in zip(labels, col_centers):
-                self._draw_centered_text(label, cx, label_y)
+            for line, cx in zip(content.lines[:3], col_centers):
+                self._draw_centered_text(line, cx, value_y)
 
-            water_text = f"{status.water_temperature:.1f}°C" if status.water_temperature is not None else "--°C"
-            air_text = f"{status.air_temperature:.1f}°C" if status.air_temperature is not None else "--°C"
-            humidity_text = f"{status.air_humidity:.0f}%" if status.air_humidity is not None else "--%"
-
-            values = [water_text, air_text, humidity_text]
-            for value, cx in zip(values, col_centers):
-                self._draw_centered_text(value, cx, value_y)
-
-            timestamp_ms = status.timestamp_utc
-            if timestamp_ms:
-                timestamp_ms_dt = datetime.fromtimestamp(timestamp_ms / 1000)
-                timestamp = timestamp_ms_dt.strftime("%H:%M %d/%m/%Y")
-            else:
-                timestamp = "--:-- --/--/----"
-
-            bbox = self._draw.textbbox((0, 0), timestamp, font=self._font)
-            timestamp_ms_width = bbox[2] - bbox[0]
-            timestamp_ms_x = int((self._width - timestamp_ms_width) / 2)
-            self._draw.text((timestamp_ms_x, time_y), timestamp, font=self._font, fill=255)
+            if content.timestamp_str:
+                bbox = self._draw.textbbox((0, 0), content.timestamp_str, font=self._font)
+                ts_width = bbox[2] - bbox[0]
+                ts_x = int((self._width - ts_width) / 2)
+                self._draw.text((ts_x, time_y), content.timestamp_str, font=self._font, fill=255)
 
             self._oled.image(self._image)
             self._oled.show()
 
         except Exception:
             self._logger.warning(
-                "Failed to render snapshot on SSD1306 OLED display",
+                "Failed to render content on SSD1306 OLED display",
                 exc_info=True,
             )
 
@@ -218,28 +216,6 @@ class SSD1306I2CDisplay(BaseDisplay):
                 "Failed to render startup message on SSD1306 OLED display",
                 exc_info=True,
             )
-
-    def _draw_system_screen(self) -> None:
-        """
-        Draw the 3-row system-screen layout and push it to the hardware.
-
-        Row 1 (y=0):  version header (fixed)
-        Row 2 (y=11): second-most-recent message (blank until two messages exist)
-        Row 3 (y=22): most recent message
-        """
-        row_step = self._height // 3
-
-        self._draw.rectangle((0, 0, self._width, self._height), outline=0, fill=0)
-        self._draw.text((0, 0), self._header, font=self._font, fill=255)
-
-        msgs = list(self._messages)
-        if len(msgs) == 2:
-            self._draw.text((0, row_step), msgs[0], font=self._font, fill=255)
-        if msgs:
-            self._draw.text((0, row_step * 2), msgs[-1], font=self._font, fill=255)
-
-        self._oled.image(self._image)
-        self._oled.show()
 
     def close(self) -> None:
         """Clear the OLED display and release hardware resources."""

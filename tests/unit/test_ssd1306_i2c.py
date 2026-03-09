@@ -8,6 +8,14 @@ from unittest.mock import MagicMock
 # reference is used when SSD1306I2CDisplay instantiates the hardware object.
 
 from monitoring_service.outputs.display.ssd1306_i2c import SSD1306I2CDisplay
+from monitoring_service.outputs.display.models import DisplayContent
+
+
+def make_content(lines=None, timestamp_str="12:34 08/03/2026"):
+    return DisplayContent(
+        lines=lines or ["WATER:24.5C", "AIR:19.2C", "HUMID:45.0%"],
+        timestamp_str=timestamp_str,
+    )
 
 
 def test_ssd1306_display_init_and_render():
@@ -23,18 +31,7 @@ def test_ssd1306_display_init_and_render():
     }
 
     display = SSD1306I2CDisplay(config)
-
-    snapshot = {
-        "ts": int(time.time() * 1000),
-        "device_name": "test_device",
-        "values": {
-            "water_temperature": 24.5,
-            "air_temperature": 19.2,
-            "air_humidity": 45.0,
-        },
-    }
-
-    display.render(snapshot)
+    display.render(make_content())
 
     mock_oled.image.assert_called_once()
     mock_oled.show.assert_called()
@@ -55,12 +52,12 @@ def test_ssd1306_render_skips_when_refresh_period_not_elapsed():
     display = SSD1306I2CDisplay(config)
     display._last_render_ts = time.time()  # simulate a recent render
 
-    display.render({"ts": 0, "device_name": "test", "values": {}})
+    display.render(make_content())
 
     mock_oled.image.assert_not_called()
 
 
-def test_ssd1306_render_with_none_values_uses_placeholders():
+def test_ssd1306_render_with_empty_lines():
     mock_oled = MagicMock()
     sys.modules["adafruit_ssd1306"].SSD1306_I2C.return_value = mock_oled
 
@@ -73,14 +70,7 @@ def test_ssd1306_render_with_none_values_uses_placeholders():
     }
 
     display = SSD1306I2CDisplay(config)
-
-    snapshot = {
-        "ts": int(time.time() * 1000),
-        "device_name": "test",
-        "values": {},
-    }
-
-    display.render(snapshot)
+    display.render(DisplayContent(lines=[], timestamp_str=""))
 
     mock_oled.image.assert_called_once()
     mock_oled.show.assert_called()
@@ -102,7 +92,7 @@ def test_ssd1306_system_screen_render_is_noop():
     display = SSD1306I2CDisplay(config)
     mock_oled.reset_mock()
 
-    display.render({"ts": 0, "device_name": "test", "values": {}})
+    display.render(make_content())
 
     mock_oled.image.assert_not_called()
     mock_oled.show.assert_not_called()

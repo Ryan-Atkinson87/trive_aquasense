@@ -37,7 +37,9 @@ Enable 1-Wire via `raspi-config` or add `dtoverlay=w1-gpio` to `/boot/firmware/c
     "water_temperature": { "min": 0, "max": 40 }
   },
   "smoothing": {},
-  "interval": 5
+  "interval": 5,
+  "max_retries": 3,
+  "retry_base_delay": 0.5
 }
 ```
 
@@ -84,7 +86,9 @@ Ensure the pin number in `config.json` matches your wiring.
     "air_humidity": { "min": 0, "max": 100 }
   },
   "smoothing": {},
-  "interval": 15
+  "interval": 15,
+  "max_retries": 3,
+  "retry_base_delay": 0.5
 }
 ```
 
@@ -135,6 +139,8 @@ The signal pin uses pigpio's internal pull-up — no external resistor required.
     "water_flow_instant": 2
   },
   "interval": 5,
+  "max_retries": 3,
+  "retry_base_delay": 0.5,
   "sample_window": 5,
   "sliding_window_s": 3,
   "glitch_us": 200,

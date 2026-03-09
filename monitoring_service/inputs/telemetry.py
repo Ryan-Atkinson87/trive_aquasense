@@ -159,6 +159,34 @@ class TelemetryCollector:
                 result[key] = value
         return result
 
+    def _read_with_retry(self, bundle, bundle_id: str) -> dict | None:
+        """
+        Attempt to read from a sensor driver, retrying with exponential back-off
+        on failure up to bundle.max_retries additional attempts.
+
+        Returns the raw dict on success, or None if all attempts fail.
+        """
+        max_retries = getattr(bundle, "max_retries", 0) or 0
+        retry_base_delay = getattr(bundle, "retry_base_delay", 0.5) or 0.5
+        last_exc = None
+        for attempt in range(max_retries + 1):
+            try:
+                return bundle.driver.read()
+            except Exception as e:
+                last_exc = e
+                if attempt < max_retries:
+                    delay = retry_base_delay * (2 ** attempt)
+                    logger.warning(
+                        f"Read failed for {bundle_id} "
+                        f"(attempt {attempt + 1}/{max_retries + 1}): {e}. "
+                        f"Retrying in {delay:.1f}s"
+                    )
+                    time.sleep(delay)
+        logger.warning(
+            f"Read failed for {bundle_id} after {max_retries + 1} attempt(s): {last_exc}"
+        )
+        return None
+
     def as_dict(self) -> dict[str, Any]:
         """
         Collect telemetry from all due sensor bundles and return a flattened
@@ -171,10 +199,8 @@ class TelemetryCollector:
             interval = getattr(bundle, "interval", None)
             if not self._is_due(bundle_id=bundle_id, now=now, interval=interval):
                 continue
-            try:
-                raw = bundle.driver.read()
-            except Exception as e:
-                logger.warning(f"Read failed for {bundle_id}: {e}")
+            raw = self._read_with_retry(bundle, bundle_id)
+            if raw is None:
                 continue
             mapped = self._map_keys(bundle, raw)
             calibrated = self._apply_calibration(bundle, mapped)

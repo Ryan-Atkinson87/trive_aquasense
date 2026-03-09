@@ -19,7 +19,8 @@ When preparing this project for release, perform the following checks:
 ## Documentation
 1. Verify CHANGELOG.md has been updated with changes for this release
 2. Check README.md has any relevant changes documented
-3. Review all documentation for accuracy
+3. Read and review all files in the `docs/` directory for accuracy — check that module paths, config fields, wiring notes, and architectural descriptions still match the current codebase
+4. If any docs file is out of date, update it before proceeding
 
 ## Configuration Files
 1. Ensure any changes in `.env` have been copied to `.env.example`
