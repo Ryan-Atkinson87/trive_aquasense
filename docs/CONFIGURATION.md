@@ -72,7 +72,9 @@ Each entry in `sensors` must include:
 | `ranges`      | object | Yes      | Per telemetry key: `{ "min": number, "max": number }`. Out-of-range readings are discarded |
 | `smoothing`   | object | No       | Per telemetry key: `{ "window": int }` for EMA smoothing. Omit or leave `{}` to disable |
 | `precision`   | object | No       | Per telemetry key: decimal places to round to. Driver defaults apply if omitted |
-| `interval`    | int    | No       | Per-sensor read frequency in seconds. Defaults to `poll_period` if omitted   |
+| `interval`         | int    | No       | Per-sensor read frequency in seconds. Defaults to `poll_period` if omitted                  |
+| `max_retries`      | int    | No       | Number of retry attempts on a failed read before skipping. Default: `3`                     |
+| `retry_base_delay` | float  | No       | Base delay in seconds for exponential back-off between retries. Default: `0.5`              |
 
 Additional driver-specific fields (e.g. `pin`, `path`, `sensor_id`, `bus`) vary by sensor type. See [SENSORS.md](SENSORS.md) for per-sensor field reference.
 
